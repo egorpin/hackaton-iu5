@@ -1,4 +1,3 @@
-// src/components/CometOrbitScene.jsx
 import React, { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Sphere } from '@react-three/drei';
@@ -37,7 +36,7 @@ function calculateOrbitPoints(semiMajorAxis, eccentricity, inclination, longitud
   const rotZ_omega = new THREE.Matrix4().makeRotationZ(omegaRad);
   const rotX_i = new THREE.Matrix4().makeRotationX(iRad);
   const rotZ_w = new THREE.Matrix4().makeRotationZ(wRad);
-  
+
   const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
 
   for (let i = 0; i <= pointsCount; i++) {
@@ -88,11 +87,11 @@ const Comet = ({ orbitParams }) => {
         const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
 
         return { a, e, meanMotion, transformMatrix };
-    }, [orbitParams]); // ИСПРАВЛЕНО: Добавлены недостающие `)` и массив зависимостей
+    }, [orbitParams]);
 
     useFrame(({ clock }) => {
         if (!cometRef.current || !animationParams) return;
-        const timeYears = clock.getElapsedTime() / 15; // Замедлил анимацию для наглядности
+        const timeYears = clock.getElapsedTime() / 15;
         const M = animationParams.meanMotion * timeYears;
         const E = solveKepler(M, animationParams.e);
 
@@ -118,6 +117,7 @@ const Comet = ({ orbitParams }) => {
     );
 };
 
+// Компонент для Планет
 const Planet = ({ planetInfo }) => {
     const planetRef = useRef();
     const animationParams = useMemo(() => {
@@ -141,7 +141,8 @@ const Planet = ({ planetInfo }) => {
 
     useFrame(({ clock }) => {
         if (!planetRef.current || !animationParams) return;
-        const timeYears = clock.getElapsedTime() / 15;
+
+        const timeYears = clock.getElapsedTime() / 20;
         const M = animationParams.meanAnomalyEpochRad + animationParams.meanMotion * timeYears;
         const E = solveKepler(M, animationParams.e);
 
@@ -182,19 +183,26 @@ const Sun = () => (
 );
 
 // --- Основной компонент сцены ---
-export default function CometOrbitScene({ orbitParams }) { // ИСПРАВЛЕНО: Принимаем orbitParams
+export default function CometOrbitScene({ orbitParams }) {
+  const hasCometData = orbitParams &&
+    orbitParams.semiMajorAxis &&
+    orbitParams.eccentricity !== undefined;
+
   return (
-    // ИСПРАВЛЕНО: Убран черный фон, чтобы не было "черного экрана"
-    <div style={{ width: '100%', height: '100%' }}> 
+    <div style={{ width: '100%', height: '100%' }}>
       <Canvas camera={{ position: [0, 15, 15], fov: 45, near: 0.1, far: 5000 }}>
         <ambientLight intensity={0.2} />
         <Sun />
         <Stars radius={200} depth={50} count={5000} factor={6} saturation={0} fade speed={0.5} />
         {planetData.map(planet => <Planet key={planet.name} planetInfo={planet} />)}
 
-        {/* ИСПРАВЛЕНО: Отображаем переданную орбиту */}
-        <CelestialOrbit elements={orbitParams} color="#4ECDC4" opacity={0.7} />
-        <Comet orbitParams={orbitParams} />
+        {/* Рендерим комету и ее орбиту только если есть данные */}
+        {hasCometData && (
+          <>
+            <CelestialOrbit elements={orbitParams} color="#4ECDC4" opacity={0.7} />
+            <Comet orbitParams={orbitParams} />
+          </>
+        )}
 
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={50} />
       </Canvas>
