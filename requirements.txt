@@ -1,0 +1,13 @@
+# Основной фреймворк для бэкенда
+Django>=4.2,<5.0
+
+# Расширение для создания REST API
+djangorestframework>=3.14
+
+# Основные астрономические пакеты
+astropy>=6.0
+poliastro>=0.18
+numpy>=1.26  # Часто требуется как зависимость для Astropy/poliastro
+
+# Обработка изображений (для поля Observation.photo)
+Pillow>=10.1
