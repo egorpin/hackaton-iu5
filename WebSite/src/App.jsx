@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
 import ObservationForm from './components/ObservationForm';
+import StarryBackground from './components/StarryBackground';
 import '../style.css';
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
 
   return (
     <>
+      <StarryBackground />
       <header data-aos="fade-down" data-aos-delay="200">
         <div className="container">
           <div className="content">
@@ -107,12 +109,12 @@ function App() {
                 с помощью <span>современных алгоритмов</span> определения траекторий
                 по <span>астрометрическим наблюдениям</span>.
               </p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <a href="#observations-section" data-aos="fade-up" data-aos-delay="400" onClick={scrollToObservations}>
+              <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2.5rem' }}>
+                {/* Применяем новые общие классы */}
+                <a href="#observations-section" data-aos="fade-up" data-aos-delay="400" className="btn btn-outline">
                   Начать наблюдения
                 </a>
-                <a href="#visualization-section" data-aos="fade-up" data-aos-delay="500" onClick={scrollToVisualization}
-                   style={{ background: 'transparent', border: '2px solid var(--primary)' }}>
+                <a href="#visualization-section" data-aos="fade-up" data-aos-delay="500" className="btn btn-outline">
                   Посмотреть 3D модель
                 </a>
               </div>
@@ -286,13 +288,13 @@ function App() {
                   <div className="calculation-info">
                     <p>🌟 Демонстрационная модель орбиты кометы</p>
                     <p className="timestamp">Введите данные наблюдений для расчета реальной орбиты</p>
-                    <button
-                      className="btn-primary"
-                      onClick={scrollToObservations}
-                      style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}
-                    >
-                      Перейти к вводу данных
-                    </button>
+                  <button
+                    className="btn btn-outline" // Используем новые классы
+                    onClick={scrollToObservations}
+                    style={{ marginTop: '1rem' }} // Оставляем только нужный отступ
+                  >
+                    Перейти к вводу данных
+                  </button>
                   </div>
                 )}
               </div>

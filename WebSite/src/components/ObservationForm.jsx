@@ -256,10 +256,10 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
       <div className="comets-panel">
         <div className="comets-header">
           <h4>Управление кометами</h4>
-          <button className="btn-add-comet" onClick={addNewComet}>
-            <i data-feather="plus-circle" className="btn-icon"></i>
-            Добавить комету
-          </button>
+        <button className="btn btn-outline" onClick={addNewComet}>
+          <i data-feather="plus-circle" className="btn-icon"></i>
+          Добавить комету
+        </button>
         </div>
         <div className="comets-list">
           {comets.map(comet => (
@@ -434,10 +434,10 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
           </div>
         </div>
 
-        <button className="btn-primary" onClick={handleAddObservation}>
-          <i data-feather="plus" className="btn-icon"></i>
-          Добавить наблюдение для {selectedComet?.name}
-        </button>
+      <button className="btn btn-outline" onClick={handleAddObservation}>
+        <i data-feather="plus" className="btn-icon"></i>
+        Добавить наблюдение для {selectedComet?.name}
+      </button>
       </div>
 
       {/* Список наблюдений для выбранной кометы */}

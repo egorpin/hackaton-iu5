@@ -1,0 +1,53 @@
+/* src/components/StarryBackground.css */
+.starry-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -10; /* Размещаем фон позади всего контента */
+  background: #000; /* Черный фон на случай, если градиент не загрузится */
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  overflow: hidden;
+}
+
+#stars1, #stars2, #stars3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  border-radius: 50%;
+}
+
+/* Слой 1: Мелкие, многочисленные и быстрые звезды */
+#stars1 {
+  animation: animStar 50s linear infinite;
+  box-shadow: 1571px 1195px #FFF, 1504px 127px #FFF, 153px 1461px #FFF, 1269px 1289px #FFF, 1397px 1625px #FFF, 353px 1403px #FFF, 1238px 1215px #FFF, 1950px 1428px #FFF, 597px 182px #FFF, 1533px 1015px #FFF, 1825px 889px #FFF, 1313px 283px #FFF, 1599px 1301px #FFF, 1795px 1149px #FFF, 1315px 1252px #FFF, 885px 1438px #FFF, 893px 112px #FFF, 1155px 1979px #FFF, 1904px 1868px #FFF, 808px 1494px #FFF, 1851px 1045px #FFF, 140px 1015px #FFF, 756px 1492px #FFF, 169px 1898px #FFF, 1009px 108px #FFF, 1188px 1399px #FFF, 143px 1583px #FFF, 1431px 1493px #FFF, 1033px 1353px #FFF, 1928px 1184px #FFF, 1947px 185px #FFF, 1076px 1587px #FFF, 497px 1982px #FFF, 109px 1157px #FFF, 164px 129px #FFF, 1442px 789px #FFF, 1332px 1419px #FFF, 1432px 175px #FFF, 1459px 1993px #FFF, 1698px 1337px #FFF, 1481px 1133px #FFF, 1315px 1083px #FFF, 1445px 1526px #FFF, 350px 1392px #FFF, 1515px 144px #FFF, 1782px 1136px #FFF, 1900px 1836px #FFF, 726px 1406px #FFF, 1685px 545px #FFF, 149px 1415px #FFF, 856px 1592px #FFF, 169px 1998px #FFF, 1099px 188px #FFF, 1188px 1999px #FFF, 143px 1883px #FFF, 1331px 1493px #FFF, 1133px 1353px #FFF, 1988px 1184px #FFF, 1947px 885px #FFF, 1176px 1587px #FFF, 497px 1882px #FFF, 189px 1157px #FFF, 164px 189px #FFF, 1442px 889px #FFF, 1332px 1519px #FFF, 1432px 875px #FFF, 1559px 1993px #FFF, 1698px 1437px #FFF, 1481px 1233px #FFF, 1315px 1183px #FFF, 1445px 1626px #FFF, 450px 1392px #FFF, 1615px 144px #FFF, 1782px 1236px #FFF, 1900px 1936px #FFF, 826px 1406px #FFF, 1785px 545px #FFF, 249px 1415px #FFF, 956px 1592px #FFF, 269px 1998px #FFF, 1199px 188px #FFF, 1288px 1999px #FFF, 243px 1883px #FFF, 1431px 1493px #FFF, 1233px 1353px #FFF, 1888px 1184px #FFF, 1847px 885px #FFF, 1276px 1587px #FFF, 597px 1882px #FFF, 289px 1157px #FFF, 264px 189px #FFF, 1542px 889px #FFF, 1432px 1519px #FFF, 1532px 875px #FFF, 1659px 1993px #FFF, 1798px 1437px #FFF, 1581px 1233px #FFF, 1415px 1183px #FFF, 1545px 1626px #FFF, 550px 1392px #FFF;
+}
+
+/* Слой 2: Средние звезды, средней скорости */
+#stars2 {
+  animation: animStar 100s linear infinite;
+  height: 2px;
+  width: 2px;
+  box-shadow: 400px 600px #FFF, 1200px 900px #FFF, 1800px 300px #FFF, 100px 1500px #FFF, 1600px 1100px #FFF, 941px 725px #FFF, 38px 470px #FFF, 1355px 1729px #FFF, 1483px 1286px #FFF, 380px 1098px #FFF, 1819px 1851px #FFF, 762px 135px #FFF, 1113px 621px #FFF, 344px 1561px #FFF, 1805px 1000px #FFF, 362px 1878px #FFF, 1881px 130px #FFF, 195px 1152px #FFF, 1192px 1488px #FFF, 1258px 338px #FFF, 1302px 1445px #FFF, 1274px 1815px #FFF, 1178px 1018px #FFF, 1646px 601px #FFF, 650px 1039px #FFF, 151px 1131px #FFF, 1552px 556px #FFF, 118px 169px #FFF, 523px 255px #FFF, 1208px 180px #FFF, 1495px 1208px #FFF, 118px 1403px #FFF, 725px 973px #FFF, 1756px 1381px #FFF, 1177px 461px #FFF, 1437px 432px #FFF, 626px 1352px #FFF, 1493px 864px #FFF, 849px 174px #FFF, 1157px 1114px #FFF, 1758px 1882px #FFF, 1496px 1745px #FFF, 781px 1422px #FFF, 165px 78px #FFF, 831px 547px #FFF, 517px 1224px #FFF, 1432px 1335px #FFF, 1125px 1891px #FFF, 137px 886px #FFF, 1696px 1630px #FFF, 1633px 1105px #FFF, 1292px 1845px #FFF, 1785px 827px #FFF;
+}
+
+/* Слой 3: Крупные, редкие и медленные звезды */
+#stars3 {
+  animation: animStar 150s linear infinite;
+  height: 3px;
+  width: 3px;
+  box-shadow: 100px 200px #FFF, 800px 1400px #FFF, 1500px 700px #FFF, 1900px 1800px #FFF, 621px 913px #FFF, 143px 1101px #FFF, 1599px 214px #FFF, 908px 584px #FFF, 461px 1827px #FFF, 1818px 1400px #FFF, 1290px 1076px #FFF, 280px 658px #FFF, 1836px 819px #FFF, 810px 1889px #FFF, 1493px 402px #FFF, 356px 61px #FFF, 1312px 1683px #FFF, 342px 1451px #FFF, 1526px 1828px #FFF, 1133px 96px #FFF;
+}
+
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-2000px);
+  }
+}
