@@ -4,23 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Text, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Вспомогательная функция для решения уравнения Кеплера M = E - e*sin(E)
-// Находит E (эксцентрическую аномалию) по M (средней аномалии) и e (эксцентриситету)
-function solveKepler(M, e) {
-  let E = M; // Начальное приближение
-  const tolerance = 1e-6; // Точность
-  for (let i = 0; i < 100; i++) {
-    const dE = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
-    E -= dE;
-    if (Math.abs(dE) < tolerance) {
-      break;
-    }
-  }
-  return E;
-}
-
-
-// Обновленная функция для расчета точек орбиты
+// Функция для расчета точек орбиты
 function calculateOrbitPoints(
   semiMajorAxis,
   eccentricity,
@@ -33,48 +17,38 @@ function calculateOrbitPoints(
   const a = semiMajorAxis;
   const e = eccentricity;
 
-  // Конвертируем углы в радианы
   const iRad = THREE.MathUtils.degToRad(inclination);
   const omegaRad = THREE.MathUtils.degToRad(longitudeOfAscNode);
   const wRad = THREE.MathUtils.degToRad(argOfPeriapsis);
 
-  // Матрицы поворота для преобразования координат
   const rotationW = new THREE.Matrix4().makeRotationZ(wRad);
   const rotationI = new THREE.Matrix4().makeRotationX(iRad);
   const rotationOmega = new THREE.Matrix4().makeRotationZ(omegaRad);
   const transformMatrix = new THREE.Matrix4().multiply(rotationOmega).multiply(rotationI).multiply(rotationW);
 
-
   for (let i = 0; i <= pointsCount; i++) {
-    const trueAnomaly = (i / pointsCount) * 2 * Math.PI; // Истинная аномалия (ν)
-
-    // Полярное уравнение эллипса
+    const trueAnomaly = (i / pointsCount) * 2 * Math.PI;
     const r = (a * (1 - e * e)) / (1 + e * Math.cos(trueAnomaly));
 
-    // Координаты в плоскости орбиты (Солнце в фокусе)
     const x = r * Math.cos(trueAnomaly);
     const y = r * Math.sin(trueAnomaly);
 
     const vec = new THREE.Vector3(x, y, 0);
-
-    // Переносим вектор из плоскости орбиты в плоскость эклиптики
     vec.applyMatrix4(transformMatrix);
-
     points.push(vec);
   }
 
   return points;
 }
 
-
-// Компонент орбиты (без изменений)
+// Компонент орбиты
 const CometOrbit = ({ orbitParams }) => {
   const points = useMemo(() => calculateOrbitPoints(
-    orbitParams?.semimajor_axis,
+    orbitParams?.semiMajorAxis,
     orbitParams?.eccentricity,
     orbitParams?.inclination,
-    orbitParams?.ra_of_node,
-    orbitParams?.arg_of_pericenter
+    orbitParams?.longitudeOfAscNode,
+    orbitParams?.argOfPeriapsis
   ), [orbitParams]);
 
   const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -83,156 +57,157 @@ const CometOrbit = ({ orbitParams }) => {
     <line geometry={lineGeometry}>
       <lineBasicMaterial
         attach="material"
-        color="#FFD700"
-        linewidth={1}
+        color="#4ECDC4"
+        linewidth={2}
         transparent
-        opacity={0.6}
+        opacity={0.8}
       />
     </line>
   );
 };
 
-// Компонент кометы с физически корректной анимацией
+// Компонент кометы
 const Comet = ({ orbitParams }) => {
   const cometRef = useRef();
-
-  // Вычисляем параметры, необходимые для анимации, один раз
-  const animationParams = useMemo(() => {
-    if (!orbitParams) return null;
-
-    const a = orbitParams.semimajor_axis; // в а.е.
-    const e = orbitParams.eccentricity;
-    const timeOfPericenter = new Date(orbitParams.time_of_pericenter).getTime();
-
-    // Период в годах (по 3-му закону Кеплера для а.е.)
-    const periodYears = Math.sqrt(a * a * a);
-    const periodMs = periodYears * 365.25 * 24 * 60 * 60 * 1000;
-
-    // Среднее движение (радианы в миллисекунду)
-    const meanMotion = (2 * Math.PI) / periodMs;
-
-    // Матрица трансформации (чтобы не считать ее в каждом кадре)
-    const iRad = THREE.MathUtils.degToRad(orbitParams.inclination);
-    const omegaRad = THREE.MathUtils.degToRad(orbitParams.ra_of_node);
-    const wRad = THREE.MathUtils.degToRad(orbitParams.arg_of_pericenter);
-
-    const rotationW = new THREE.Matrix4().makeRotationZ(wRad);
-    const rotationI = new THREE.Matrix4().makeRotationX(iRad);
-    const rotationOmega = new THREE.Matrix4().makeRotationZ(omegaRad);
-    const transformMatrix = new THREE.Matrix4().multiply(rotationOmega).multiply(rotationI).multiply(rotationW);
-
-    return { a, e, timeOfPericenter, meanMotion, transformMatrix };
-  }, [orbitParams]);
+  const tailRef = useRef();
 
   useFrame(({ clock }) => {
-    if (!cometRef.current || !animationParams) return;
+    if (!cometRef.current || !orbitParams) return;
 
-    // Моделируем течение времени. Умножим на 100000 для наглядности
-    const elapsedTime = clock.getElapsedTime() * 1000000;
-    const currentTime = animationParams.timeOfPericenter + elapsedTime;
+    // Простая анимация по орбите
+    const time = clock.getElapsedTime() * 0.2;
+    const angle = time % (2 * Math.PI);
 
-    // 1. Средняя аномалия (M)
-    const M = animationParams.meanMotion * (currentTime - animationParams.timeOfPericenter);
+    const a = orbitParams.semiMajorAxis;
+    const e = orbitParams.eccentricity;
+    const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle));
 
-    // 2. Эксцентрическая аномалия (E) - решаем уравнение Кеплера
-    const E = solveKepler(M, animationParams.e);
+    const x = r * Math.cos(angle);
+    const y = r * Math.sin(angle);
 
-    // 3. Координаты в плоскости орбиты
-    const x = animationParams.a * (Math.cos(E) - animationParams.e);
-    const y = animationParams.a * Math.sqrt(1 - animationParams.e * animationParams.e) * Math.sin(E);
+    cometRef.current.position.set(x, y, 0);
+    cometRef.current.rotation.y += 0.05;
 
-    const newPos = new THREE.Vector3(x, y, 0);
-
-    // 4. Применяем трансформацию, как при построении орбиты
-    newPos.applyMatrix4(animationParams.transformMatrix);
-
-    cometRef.current.position.copy(newPos);
-
-    // Вращение для эффекта
-    cometRef.current.rotation.y += 0.01;
+    // Анимация хвоста
+    if (tailRef.current) {
+      tailRef.current.scale.x = 1 + Math.sin(time * 3) * 0.3;
+    }
   });
 
   if (!orbitParams) return null;
 
   return (
     <group ref={cometRef}>
-      <Sphere args={[0.2, 16, 16]}>
+      <Sphere args={[0.3, 16, 16]}>
         <meshBasicMaterial color="#FF6B6B" />
       </Sphere>
-      {/* Упрощенный хвост кометы */}
-      <mesh rotation={[0, Math.PI / 2, 0]} position={[1, 0, 0]}>
-        <coneGeometry args={[0.15, 2, 12]} />
-        <meshBasicMaterial color="#4ECDC4" transparent opacity={0.6} />
+      {/* Хвост кометы */}
+      <mesh ref={tailRef} rotation={[0, Math.PI / 2, 0]} position={[1.5, 0, 0]}>
+        <coneGeometry args={[0.2, 3, 8]} />
+        <meshBasicMaterial color="#82C8E5" transparent opacity={0.7} />
       </mesh>
     </group>
   );
 };
 
-
-// Компонент Земли (можно будет добавить орбиту и движение)
+// Компонент Земли
 const Earth = () => {
+  const earthRef = useRef();
+
+  useFrame(() => {
+    if (earthRef.current) {
+      earthRef.current.rotation.y += 0.01;
+    }
+  });
+
   return (
-    <group position={[10, 0, 0]}> {/* Примерное положение */}
-      <Sphere args={[0.5, 32, 32]}>
-        <meshPhongMaterial color="#4f86f7" />
+    <group position={[10, 0, 0]}>
+      <Sphere ref={earthRef} args={[0.8, 32, 32]}>
+        <meshPhongMaterial color="#3b8ab5" />
       </Sphere>
+      <Text
+        position={[0, 1.5, 0]}
+        fontSize={0.5}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Земля
+      </Text>
     </group>
   );
 };
 
 // Компонент Солнца
 const Sun = () => {
+  const sunRef = useRef();
+
+  useFrame(() => {
+    if (sunRef.current) {
+      sunRef.current.rotation.y += 0.005;
+    }
+  });
+
   return (
     <group>
-      <Sphere args={[1.5, 32, 32]}>
+      <Sphere ref={sunRef} args={[2, 32, 32]}>
         <meshBasicMaterial color="#FFD700" />
       </Sphere>
-      <pointLight position={[0, 0, 0]} intensity={150} distance={1000} color="#FFD700" />
+      <pointLight position={[0, 0, 0]} intensity={2} distance={100} color="#FFD700" />
+      <Text
+        position={[0, 3, 0]}
+        fontSize={0.6}
+        color="#FFD700"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Солнце
+      </Text>
     </group>
   );
 };
 
-
 // Основной компонент сцены
 export default function CometOrbitScene({ orbitParams }) {
-  // Адаптируем камеру к размеру орбиты
   const cameraPosition = useMemo(() => {
-    const distance = orbitParams ? orbitParams.semimajor_axis * 2 : 20;
-    return [distance, distance * 0.8, distance];
+    const distance = orbitParams ? orbitParams.semiMajorAxis * 1.5 : 30;
+    return [distance, distance * 0.5, distance];
   }, [orbitParams]);
 
   return (
-    <div style={{ width: '100%', height: '100%', background: 'black' }}>
-      <Canvas camera={{ position: cameraPosition, fov: 45 }}>
+    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)' }}>
+      <Canvas camera={{ position: cameraPosition, fov: 50 }}>
+        <color attach="background" args={['#0a0a1a']} />
+
         {/* Освещение */}
-        <ambientLight intensity={0.1} />
+        <ambientLight intensity={0.3} />
         <Sun />
 
         {/* Фон */}
         <Stars
-          radius={200}
-          depth={100}
-          count={5000}
-          factor={6}
+          radius={100}
+          depth={50}
+          count={2000}
+          factor={4}
           saturation={0}
           fade
-          speed={0.5}
+          speed={1}
         />
 
-        {/* Земля (пока статична) */}
+        {/* Земля */}
         <Earth />
 
         {/* Орбита и комета */}
         {orbitParams && (
           <>
-            <CometOrbit orbitParams={orbitParams.elements} />
-            <Comet orbitParams={orbitParams.elements} />
+            <CometOrbit orbitParams={orbitParams} />
+            <Comet orbitParams={orbitParams} />
           </>
         )}
 
         {/* Вспомогательные элементы */}
-        <axesHelper args={[20]} />
-        <gridHelper args={[100, 100, '#303050', '#202040']} />
+        <axesHelper args={[15]} />
+        <gridHelper args={[50, 50, '#303050', '#202040']} />
 
         {/* Управление */}
         <OrbitControls
@@ -240,7 +215,7 @@ export default function CometOrbitScene({ orbitParams }) {
           enableZoom={true}
           enableRotate={true}
           minDistance={5}
-          maxDistance={500}
+          maxDistance={200}
         />
       </Canvas>
     </div>
