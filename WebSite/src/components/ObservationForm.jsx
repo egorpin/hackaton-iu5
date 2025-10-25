@@ -16,6 +16,17 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
       return;
     }
 
+    // Валидация координат
+    if (!currentObs.raHours && !currentObs.raMinutes && !currentObs.raSeconds) {
+      alert('Пожалуйста, введите прямое восхождение');
+      return;
+    }
+
+    if (!currentObs.decDegrees && !currentObs.decMinutes && !currentObs.decSeconds) {
+      alert('Пожалуйста, введите склонение');
+      return;
+    }
+
     const raDecimal = (parseFloat(currentObs.raHours || 0) +
                       parseFloat(currentObs.raMinutes || 0)/60 +
                       parseFloat(currentObs.raSeconds || 0)/3600) * 15;
@@ -41,8 +52,16 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
       try {
         const orbitParams = calculateOrbitFromObservations(updatedObservations);
         onOrbitCalculated(orbitParams, updatedObservations);
+
+        // Скролл к 3D визуализации
+        setTimeout(() => {
+          document.querySelector('.visualization-3d')?.scrollIntoView({
+            behavior: 'smooth'
+          });
+        }, 500);
       } catch (error) {
         console.error('Ошибка расчета:', error);
+        alert('Ошибка при расчете орбиты. Проверьте введенные данные.');
       }
     }
 
@@ -68,111 +87,71 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
   };
 
   return (
-    <div style={{ padding: '1rem', width: '100%' }}>
-      <h3 style={{ color: '#4ecdc4', marginBottom: '1rem', textAlign: 'center' }}>
+    <div className="observation-form">
+      <h3 style={{ color: '#4ecdc4', marginBottom: '2rem', textAlign: 'center', fontSize: '1.5rem' }}>
         📡 Ввод астрометрических данных
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#4ecdc4' }}>
-            Дата наблюдения
-          </label>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Дата наблюдения *</label>
           <input
             type="date"
             value={currentObs.date}
             onChange={(e) => setCurrentObs({...currentObs, date: e.target.value})}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            required
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#4ecdc4' }}>
-            Время (UTC)
-          </label>
+        <div className="form-group">
+          <label>Время (UTC) *</label>
           <input
             type="time"
             value={currentObs.time}
             onChange={(e) => setCurrentObs({...currentObs, time: e.target.value})}
             step="1"
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            required
           />
         </div>
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#4ecdc4' }}>
-          Прямое восхождение (RA)
-        </label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+      <div className="form-group">
+        <label>Прямое восхождение (RA) *</label>
+        <div className="coord-inputs">
           <input
             placeholder="Часы"
             value={currentObs.raHours}
             onChange={(e) => setCurrentObs({...currentObs, raHours: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="23"
           />
           <input
             placeholder="Минуты"
             value={currentObs.raMinutes}
             onChange={(e) => setCurrentObs({...currentObs, raMinutes: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="59"
           />
           <input
             placeholder="Секунды"
             value={currentObs.raSeconds}
             onChange={(e) => setCurrentObs({...currentObs, raSeconds: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="59"
+            step="0.1"
           />
         </div>
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#4ecdc4' }}>
-          Склонение (Dec)
-        </label>
+      <div className="form-group">
+        <label>Склонение (Dec) *</label>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
             value={currentObs.decSign}
             onChange={(e) => setCurrentObs({...currentObs, decSign: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
           >
             <option value="+">+</option>
             <option value="-">-</option>
@@ -181,90 +160,53 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
             placeholder="Градусы"
             value={currentObs.decDegrees}
             onChange={(e) => setCurrentObs({...currentObs, decDegrees: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="90"
           />
           <input
             placeholder="Минуты"
             value={currentObs.decMinutes}
             onChange={(e) => setCurrentObs({...currentObs, decMinutes: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="59"
           />
           <input
             placeholder="Секунды"
             value={currentObs.decSeconds}
             onChange={(e) => setCurrentObs({...currentObs, decSeconds: e.target.value})}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              color: 'white'
-            }}
+            type="number"
+            min="0"
+            max="59"
+            step="0.1"
           />
         </div>
       </div>
 
-      <button
-        onClick={handleAddObservation}
-        style={{
-          background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
-          color: 'white',
-          border: 'none',
-          padding: '0.75rem 1.5rem',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          width: '100%',
-          fontSize: '1rem',
-          fontWeight: 'bold'
-        }}
-      >
+      <button className="btn-primary" onClick={handleAddObservation}>
         ➕ Добавить наблюдение
       </button>
 
       {observations.length > 0 && (
-        <div style={{ marginTop: '1.5rem' }}>
+        <div className="observations-list">
           <h4 style={{ color: '#ffd700', marginBottom: '1rem', textAlign: 'center' }}>
-            Наблюдения: {observations.length}
+            📋 Список наблюдений: {observations.length}
           </h4>
           <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
             {observations.map(obs => (
-              <div key={obs.id} style={{
-                background: 'rgba(255,255,255,0.05)',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                marginBottom: '0.5rem',
-                borderLeft: '4px solid #ffd700'
-              }}>
-                <div style={{ fontSize: '0.9rem' }}>
-                  <div>Время: {new Date(obs.timestamp).toLocaleString()}</div>
-                  <div>RA: {obs.ra.toFixed(4)}° | Dec: {obs.dec.toFixed(4)}°</div>
+              <div key={obs.id} className="observation-item">
+                <div>
+                  <strong>Время:</strong> {new Date(obs.timestamp).toLocaleString('ru-RU')}
+                </div>
+                <div>
+                  <strong>RA:</strong> {obs.ra.toFixed(4)}° | <strong>Dec:</strong> {obs.dec.toFixed(4)}°
                 </div>
                 <button
+                  className="btn-danger"
                   onClick={() => removeObservation(obs.id)}
-                  style={{
-                    background: 'rgba(255,107,107,0.2)',
-                    color: '#ff6b6b',
-                    border: '1px solid rgba(255,107,107,0.5)',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    marginTop: '0.5rem',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer'
-                  }}
                 >
-                  Удалить
+                  🗑️ Удалить
                 </button>
               </div>
             ))}
@@ -273,16 +215,9 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
       )}
 
       {observations.length < 3 && observations.length > 0 && (
-        <div style={{
-          marginTop: '1rem',
-          padding: '1rem',
-          background: 'rgba(255,193,7,0.1)',
-          border: '1px solid rgba(255,193,7,0.3)',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <p style={{ color: '#ffc107', margin: 0 }}>
-            Нужно минимум 3 наблюдения для расчета орбиты ({3 - observations.length} осталось)
+        <div className="warning-message">
+          <p>
+            ⚠️ Нужно минимум 3 наблюдения для расчета орбиты ({3 - observations.length} осталось)
           </p>
         </div>
       )}

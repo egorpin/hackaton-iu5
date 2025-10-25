@@ -813,3 +813,358 @@ footer p {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
+
+/* Стили для секции 3D визуализации */
+.visualization-3d {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+  padding: 4rem 0;
+}
+
+.visualization-3d .container .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  min-height: 100vh;
+}
+
+.visualization-3d .title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.visualization-3d .title h2 {
+  font: bold 1.5rem var(--aud);
+  color: var(--lightgray);
+}
+
+.visualization-3d .title h1 {
+  font: bold 2.5rem var(--aud);
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.visualization-3d .title p {
+  width: 60%;
+  color: var(--lightgray);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.orbit-visualization {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.visualization-container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.orbit-info {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  height: fit-content;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #4ecdc4;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--lightgray);
+  font-size: 0.9rem;
+}
+
+.info-value {
+  font-weight: bold;
+  color: var(--white);
+  font-size: 1rem;
+}
+
+.calculation-info {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calculation-info p {
+  margin-bottom: 0.5rem;
+  color: var(--lightgray);
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: var(--gray) !important;
+}
+
+/* Адаптивность для 3D секции */
+@media (max-width: 1024px) {
+  .orbit-visualization {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .visualization-container {
+    height: 400px;
+  }
+
+  .visualization-3d .title p {
+    width: 80%;
+  }
+}
+
+@media (max-width: 768px) {
+  .visualization-3d .title h1 {
+    font-size: 2rem;
+  }
+
+  .visualization-3d .title p {
+    width: 90%;
+    font-size: 1rem;
+  }
+
+  .visualization-container {
+    height: 300px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Обновленные стили для статус секции */
+.status .container .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  height: 100vh;
+}
+
+.status .title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.status .title h2 {
+  font: bold 2.5rem var(--aud);
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.status .title p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  width: 70%;
+  color: var(--lightgray);
+  line-height: 1.6;
+}
+
+/* Улучшенные стили для карточки формы */
+.why-us .container .content .reason .card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2rem;
+  width: 100%;
+  height: auto;
+  min-height: 500px;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* Улучшенные стили для результатов */
+.about .container .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.about .container .content .text-action {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.about .container .content h2 {
+  font: bold 1.5rem var(--aud);
+  color: var(--lightgray);
+}
+
+.about .container .content h1 {
+  font: bold 2.5rem var(--aud);
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.results-grid p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #4ecdc4;
+}
+
+.results-grid strong {
+  color: #4ecdc4;
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.success-message {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(45deg, rgba(78, 205, 196, 0.1), rgba(255, 107, 107, 0.1));
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.success-message p {
+  color: #4ecdc4;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.success-message p:last-child {
+  color: var(--lightgray);
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+/* Адаптивность для результатов */
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .about .container .content .text-action {
+    width: 95%;
+  }
+
+  .results-grid p {
+    font-size: 1rem;
+  }
+}
+
+.hero .container .content .text a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color: var(--white);
+  font-weight: bold;
+  padding: 12px 24px;
+  border-bottom: 2px solid var(--white);
+  border-top: 2px solid var(--gray);
+  width: auto;
+  min-width: 200px;
+  background: var(--darkgray);
+  border-radius: 32px;
+  transition: .5s linear;
+  cursor: pointer;
+  margin: 0 0.5rem;
+}
+
+.hero .container .content .text a:hover {
+  background: var(--gray);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(130, 200, 229, 0.3);
+}
+
+.hero .container .content .text a:active {
+  border: 2px solid transparent;
+  transform: translateY(1px);
+  transition: .1s linear;
+}
+
+/* Специфичный стиль для второй кнопки */
+.hero .container .content .text a:nth-child(2) {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+.hero .container .content .text a:nth-child(2):hover {
+  background: rgba(130, 200, 229, 0.1);
+  color: var(--white);
+}
+
+/* Контейнер для кнопок */
+.hero .container .content .text > div {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}

@@ -16,6 +16,11 @@ class CloseApproachSerializer(serializers.ModelSerializer):
         model = CloseApproach
         fields = '__all__' # Дата и дистанция сближения
 
+COORD_INPUT_FIELDS = [
+    'raHours', 'raMinutes', 'raSeconds',
+    'decDegrees', 'decMinutes', 'decSeconds', 'decSign'
+]
+
 class ObservationSerializer(serializers.ModelSerializer):
     # 💡 Поля для ввода (не хранятся в БД)
     raHours = serializers.IntegerField(write_only=True, min_value=0, max_value=24, required=False)
@@ -31,13 +36,16 @@ class ObservationSerializer(serializers.ModelSerializer):
         model = Observation
         # Включаем все вспомогательные поля и основные поля для чтения
         fields = (
-            'id', 'observation_time', 'photo',
-            'ra_deg', 'dec_deg', # Основные поля для чтения
+            'id',
+            'observation_time',
+            'photo',
+            'ra_deg',
+            'dec_deg',
+            # Поля для записи (Write-only)
             'raHours', 'raMinutes', 'raSeconds',
-            'decDegrees', 'decMinutes', 'decSeconds', 'decSign' # Вспомогательные поля для записи
+            'decDegrees', 'decMinutes', 'decSeconds', 'decSign'
         )
         read_only_fields = ('id', 'ra_deg', 'dec_deg')
-        exclude = ('comet',) # 'comet' устанавливается во View
 
     def validate(self, data):
         """Конвертируем H/M/S и D/M/S в градусы перед сохранением."""
@@ -66,18 +74,21 @@ class ObservationSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create(self, validated_data):
-        # Удаляем временные поля H/M/S и D/M/S перед созданием объекта
-        for k in ['raHours', 'raMinutes', 'raSeconds', 'decDegrees', 'decMinutes', 'decSeconds', 'decSign']:
+    def _clean_validated_data(self, validated_data):
+        """Helper function to remove temporary input fields."""
+        for k in COORD_INPUT_FIELDS:
+            # Pop the temporary field if it exists
             validated_data.pop(k, None)
+        return validated_data
 
+    def create(self, validated_data):
+        # ❗️ FIX: Clean data before creation
+        validated_data = self._clean_validated_data(validated_data)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # Удаляем временные поля H/M/S и D/M/S перед обновлением
-        for k in ['raHours', 'raMinutes', 'raSeconds', 'decDegrees', 'decMinutes', 'decSeconds', 'decSign']:
-            validated_data.pop(k, None)
-
+        # ❗️ FIX: Clean data before update
+        validated_data = self._clean_validated_data(validated_data)
         return super().update(instance, validated_data)
 
 # --- Основные сериализаторы ---
@@ -98,7 +109,8 @@ class CometDetailSerializer(serializers.ModelSerializer):
         """Получение последнего прогноза сближения через связанные модели"""
         try:
             # Предполагаем, что у каждой орбиты есть один прогноз сближения
-            return CloseApproachSerializer(obj.elements.approaches.latest('id')).data
+            approach = obj.elements.approach_prediction
+            return CloseApproachSerializer(approach).data
         except CloseApproach.DoesNotExist:
             return None
 
