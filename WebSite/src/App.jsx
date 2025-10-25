@@ -65,7 +65,6 @@ function App() {
     });
   };
 
-  // Параметры по умолчанию для демонстрационной орбиты
   const defaultOrbitParams = {
     semiMajorAxis: 10.5,
     eccentricity: 0.85,
@@ -93,7 +92,6 @@ function App() {
 
       <a href="#" className="to-top"><i data-feather="chevron-up"></i></a>
 
-      {/* Секция 1: Заголовок */}
       <section className="hero">
         <div className="container">
           <div className="content">
@@ -121,7 +119,6 @@ function App() {
         </div>
       </section>
 
-      {/* Секция 2: Технологии с вращающейся Землей */}
       <section className="status">
         <div className="container">
           <div className="content">
@@ -143,92 +140,46 @@ function App() {
                   </div>
                 </div>
               </div>
-
               <div className="desc desc-1">
-                <p className="name" data-aos="fade-right" data-aos-delay="200">
-                  Точность расчета
-                </p>
-                <hr data-aos="fade-right" data-aos-delay="200" />
-                <p className="value" data-aos="fade-right" data-aos-delay="200">
-                  До 99.8%
-                </p>
+                <p className="name" data-aos="fade-right" data-aos-delay="200">Точность расчета</p><hr data-aos="fade-right" data-aos-delay="200" /><p className="value" data-aos="fade-right" data-aos-delay="200">До 99.8%</p>
               </div>
               <div className="desc desc-2">
-                <p className="name" data-aos="fade-right" data-aos-delay="400">
-                  Минимальные наблюдения
-                </p>
-                <hr data-aos="fade-right" data-aos-delay="400" />
-                <p className="value" data-aos="fade-right" data-aos-delay="400">
-                  3 точки данных
-                </p>
+                <p className="name" data-aos="fade-right" data-aos-delay="400">Минимальные наблюдения</p><hr data-aos="fade-right" data-aos-delay="400" /><p className="value" data-aos="fade-right" data-aos-delay="400">3 точки данных</p>
               </div>
               <div className="desc desc-3">
-                <p className="name" data-aos="fade-right" data-aos-delay="600">
-                  Время расчета
-                </p>
-                <hr data-aos="fade-right" data-aos-delay="600" />
-                <p className="value" data-aos="fade-right" data-aos-delay="600">
-                  Менее 1 секунды
-                </p>
+                <p className="name" data-aos="fade-right" data-aos-delay="600">Время расчета</p><hr data-aos="fade-right" data-aos-delay="600" /><p className="value" data-aos="fade-right" data-aos-delay="600">Менее 1 секунды</p>
               </div>
               <div className="desc desc-4">
-                <p className="name" data-aos="fade-left" data-aos-delay="200">
-                  Алгоритм
-                </p>
-                <hr data-aos="fade-left" data-aos-delay="200" />
-                <p className="value" data-aos="fade-left" data-aos-delay="200">
-                  Метод Гаусса
-                </p>
+                <p className="name" data-aos="fade-left" data-aos-delay="200">Алгоритм</p><hr data-aos="fade-left" data-aos-delay="200" /><p className="value" data-aos="fade-left" data-aos-delay="200">Метод Гаусса</p>
               </div>
               <div className="desc desc-5">
-                <p className="name" data-aos="fade-left" data-aos-delay="400">
-                  Координаты
-                </p>
-                <hr data-aos="fade-left" data-aos-delay="400" />
-                <p className="value" data-aos="fade-left" data-aos-delay="400">
-                  RA/Dec система
-                </p>
+                <p className="name" data-aos="fade-left" data-aos-delay="400">Координаты</p><hr data-aos="fade-left" data-aos-delay="400" /><p className="value" data-aos="fade-left" data-aos-delay="400">RA/Dec система</p>
               </div>
               <div className="desc desc-6">
-                <p className="name" data-aos="fade-left" data-aos-delay="600">
-                  Орбитальные параметры
-                </p>
-                <hr data-aos="fade-left" data-aos-delay="600" />
-                <p className="value" data-aos="fade-left" data-aos-delay="600">
-                  6 элементов
-                </p>
+                <p className="name" data-aos="fade-left" data-aos-delay="600">Орбитальные параметры</p><hr data-aos="fade-left" data-aos-delay="600" /><p className="value" data-aos="fade-left" data-aos-delay="600">6 элементов</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Секция 3: Форма ввода данных */}
       <section id="observations-section" className="why-us">
         <div className="container">
           <div className="content">
             <div className="title" data-aos="fade-up" data-aos-delay="400">
               <h2>СИСТЕМА ОПРЕДЕЛЕНИЯ ОРБИТ</h2>
               <h1>Введите данные наблюдений</h1>
-              <p>
-                Добавьте минимум 3 астрометрических наблюдения кометы для расчета
-                ее орбитальных параметров. Чем больше наблюдений - тем точнее расчет.
-              </p>
+              <p>Добавьте минимум 3 астрометрических наблюдения кометы для расчета ее орбитальных параметров. Чем больше наблюдений - тем точнее расчет.</p>
             </div>
-
             <div className="reason">
               <div className="card" data-aos="fade-up" data-aos-delay="400" style={{ width: '100%', height: 'auto' }}>
-                <ObservationForm
-                  onOrbitCalculated={handleOrbitCalculated}
-                  existingObservations={observations}
-                />
+                <ObservationForm onOrbitCalculated={handleOrbitCalculated} existingObservations={observations} />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Секция 4: 3D модель орбиты (всегда отображается) */}
       <section id="visualization-section" className="visualization-3d">
         <div className="container">
           <div className="content">
@@ -237,7 +188,7 @@ function App() {
               <h1>Траектория движения кометы</h1>
               <p>
                 Интерактивная 3D модель {orbitParams ? 'рассчитанной' : 'демонстрационной'} орбиты кометы.
-                {orbitParams ? ` Параметры: a=${orbitParams.semiMajorAxis.toFixed(2)} а.е.` : ' Введите данные наблюдений для расчета реальной орбиты.'}
+                {orbitParams ? ` Параметры: a=${orbitParams.semiMajorAxis?.toFixed(2)} а.е.` : ' Введите данные наблюдений для расчета реальной орбиты.'}
               </p>
             </div>
 
@@ -245,34 +196,33 @@ function App() {
               <div className="visualization-container">
                 <CometOrbitScene orbitParams={orbitParams || defaultOrbitParams} />
               </div>
-
               <div className="orbit-info">
                 {orbitParams ? (
                   <>
                     <div className="info-grid">
                       <div className="info-item">
                         <span className="info-label">Большая полуось (a):</span>
-                        <span className="info-value">{orbitParams.semiMajorAxis.toFixed(3)} а.е.</span>
+                        <span className="info-value">{orbitParams.semiMajorAxis?.toFixed(3)} а.е.</span>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Эксцентриситет (e):</span>
-                        <span className="info-value">{orbitParams.eccentricity.toFixed(3)}</span>
+                        <span className="info-value">{orbitParams.eccentricity?.toFixed(3)}</span>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Наклонение (i):</span>
-                        <span className="info-value">{orbitParams.inclination.toFixed(2)}°</span>
+                        <span className="info-value">{orbitParams.inclination?.toFixed(2)}°</span>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Долгота восх. узла (Ω):</span>
-                        <span className="info-value">{orbitParams.longitudeOfAscNode.toFixed(2)}°</span>
+                        <span className="info-value">{orbitParams.longitudeOfAscNode?.toFixed(2)}°</span>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Аргумент перицентра (ω):</span>
-                        <span className="info-value">{orbitParams.argOfPeriapsis.toFixed(2)}°</span>
+                        <span className="info-value">{orbitParams.argOfPeriapsis?.toFixed(2)}°</span>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Период обращения:</span>
-                        <span className="info-value">{orbitParams.period.toFixed(0)} дней</span>
+                        <span className="info-value">{orbitParams.period?.toFixed(0)} дней</span>
                       </div>
                     </div>
                     <div className="calculation-info">
@@ -284,11 +234,7 @@ function App() {
                   <div className="calculation-info">
                     <p>🌟 Демонстрационная модель орбиты кометы</p>
                     <p className="timestamp">Введите данные наблюдений для расчета реальной орбиты</p>
-                    <button
-                      className="btn-primary"
-                      onClick={scrollToObservations}
-                      style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}
-                    >
+                    <button className="btn-primary" onClick={scrollToObservations} style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}>
                       Перейти к вводу данных
                     </button>
                   </div>
