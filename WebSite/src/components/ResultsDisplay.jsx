@@ -1,4 +1,5 @@
-// src/components/ResultsDisplay.jsx
+// --- START OF FILE ResultsDisplay.jsx ---
+
 import React from 'react';
 
 export default function ResultsDisplay({ orbitParams, closeApproach, observations }) {
@@ -11,7 +12,7 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
       <div className="param-grid">
         <div className="param-item">
           <div className="param-label">Большая полуось (a)</div>
-          <div className="param-value">{orbitParams.semiMajorAxis.toFixed(3)} а.е.</div>
+          <div className="param-value">{orbitParams.semimajor_axis.toFixed(3)} а.е.</div>
         </div>
 
         <div className="param-item">
@@ -26,18 +27,21 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
 
         <div className="param-item">
           <div className="param-label">Долгота восх. узла (Ω)</div>
-          <div className="param-value">{orbitParams.longitudeOfAscNode.toFixed(2)}°</div>
+          <div className="param-value">{orbitParams.ra_of_node.toFixed(2)}°</div>
         </div>
 
         <div className="param-item">
           <div className="param-label">Аргумент перицентра (ω)</div>
-          <div className="param-value">{orbitParams.argOfPeriapsis.toFixed(2)}°</div>
+          <div className="param-value">{orbitParams.arg_of_pericenter.toFixed(2)}°</div>
         </div>
 
-        <div className="param-item">
-          <div className="param-label">Период обращения</div>
-          <div className="param-value">{orbitParams.period.toFixed(0)} дней</div>
-        </div>
+        {/* Добавим проверку на наличие `period` */}
+        {orbitParams.period && (
+            <div className="param-item">
+                <div className="param-label">Период обращения</div>
+                <div className="param-value">{orbitParams.period.toFixed(0)} дней</div>
+            </div>
+        )}
       </div>
 
       {closeApproach && (
@@ -52,21 +56,21 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
             </div>
 
             <div className="param-item">
-              <div className="param-label">Расстояние</div>
+              <div className="param-label">Расстояние (а.е.)</div>
               <div className="param-value">
                 {closeApproach.distance_au.toFixed(3)} а.е.
               </div>
             </div>
 
             <div className="param-item">
-              <div className="param-label">Расстояние</div>
+              <div className="param-label">Расстояние (км)</div>
               <div className="param-value">
                 {closeApproach.distance_km.toLocaleString('ru-RU')} км
               </div>
             </div>
 
             <div className="param-item">
-              <div className="param-label">Скорость относительная</div>
+              <div className="param-label">Скорость (км/с)</div>
               <div className="param-value">
                 {closeApproach.relative_velocity.toFixed(1)} км/с
               </div>
@@ -83,3 +87,5 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
     </div>
   );
 }
+
+// --- END OF FILE ResultsDisplay.jsx ---

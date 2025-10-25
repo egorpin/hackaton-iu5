@@ -1,10 +1,9 @@
-// src/components/CometOrbitScene.jsx
 import React, { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 
-// --- ДАННЫЕ О ПЛАНЕТАХ (первые 5) ---
+// --- ДАННЫЕ О ПЛАНЕТАХ (остаются без изменений) ---
 const planetData = [
   { name: 'Mercury', a: 0.3871, e: 0.2056, i: 7.005, a_node: 48.331, a_peri: 29.124, M_epoch: 174.795, size: 0.38, color: '#9f9f9f' },
   { name: 'Venus', a: 0.7233, e: 0.0068, i: 3.395, a_node: 76.680, a_peri: 54.884, M_epoch: 50.416, size: 0.95, color: '#d8a050' },
@@ -12,17 +11,6 @@ const planetData = [
   { name: 'Mars', a: 1.5237, e: 0.0934, i: 1.850, a_node: 49.579, a_peri: 286.537, M_epoch: 19.390, size: 0.53, color: '#c1440e' },
   { name: 'Jupiter', a: 5.2034, e: 0.0484, i: 1.305, a_node: 100.556, a_peri: 274.256, M_epoch: 19.668, size: 11.2, color: '#c8a379' },
 ];
-
-// --- НОВЫЕ ДАННЫЕ ДЛЯ ДЕМО-КОМЕТЫ (уникальная орбита) ---
-const sampleCometData = {
-    elements: {
-        semimajor_axis: 3.5,     // Большая полуось (а.е.) - орбита больше, чем у Марса
-        eccentricity: 0.65,      // Эксцентриситет - орбита сильно вытянутая
-        inclination: 20.0,       // Наклонение - орбита под заметным углом
-        ra_of_node: 100.0,       // Долгота восходящего узла
-        arg_of_pericenter: 150.0,// Аргумент перицентра
-    }
-};
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (без изменений) ---
 
@@ -109,7 +97,8 @@ const Comet = ({ orbitParams }) => {
   useFrame(({ clock }) => {
     if (!cometRef.current || !animationParams) return;
 
-    const timeYears = clock.getElapsedTime() / 5;
+    // Замедлим анимацию, чтобы было нагляднее
+    const timeYears = clock.getElapsedTime() / 20;
     const M = animationParams.meanMotion * timeYears;
     const E = solveKepler(M, animationParams.e);
 
@@ -122,19 +111,19 @@ const Comet = ({ orbitParams }) => {
 
   if (!orbitParams) return null;
 
-  // Уменьшенная модель кометы
   return (
     <group ref={cometRef}>
-      <Sphere args={[0.05, 16, 16]}> {/* Уменьшенная голова */}
+      <Sphere args={[0.08, 16, 16]}>
         <meshBasicMaterial color="#FF6B6B" />
       </Sphere>
-      <mesh rotation={[0, Math.PI / 2, 0]} position={[0.2, 0, 0]}> {/* Уменьшенный хвост */}
-        <coneGeometry args={[0.03, 0.4, 12]} />
+      <mesh rotation={[0, Math.PI / 2, 0]} position={[0.2, 0, 0]}>
+        <coneGeometry args={[0.04, 0.5, 12]} />
         <meshBasicMaterial color="#4ECDC4" transparent opacity={0.7} />
       </mesh>
     </group>
   );
 };
+
 
 // Компонент для Планет
 const Planet = ({ planetInfo }) => {
@@ -162,7 +151,7 @@ const Planet = ({ planetInfo }) => {
     useFrame(({ clock }) => {
         if (!planetRef.current || !animationParams) return;
 
-        const timeYears = clock.getElapsedTime() / 5;
+        const timeYears = clock.getElapsedTime() / 20;
         const M = animationParams.meanAnomalyEpochRad + animationParams.meanMotion * timeYears;
         const E = solveKepler(M, animationParams.e);
 
@@ -206,23 +195,35 @@ const Sun = () => {
   );
 };
 
-// --- Основной компонент сцены ---
-export default function CometOrbitScene() {
+export default function CometOrbitScene({ orbitParams }) {
+  // Ключ для пересоздания сцены при смене кометы.
+  // Это самый простой способ гарантировать, что старая орбита удалится.
+  const sceneKey = useMemo(() => JSON.stringify(orbitParams), [orbitParams]);
+
+  // Проверяем, переданы ли валидные параметры орбиты
+  const hasCometData = orbitParams && orbitParams.semimajor_axis != null;
+
   return (
     <div style={{ width: '100%', height: '100%', background: 'black' }}>
-      <Canvas camera={{ position: [0, 15, 15], fov: 45, near: 0.1, far: 5000 }}>
+      <Canvas key={sceneKey} camera={{ position: [0, 15, 15], fov: 45, near: 0.1, far: 5000 }}>
         <ambientLight intensity={0.2} />
         <Sun />
-
         <Stars radius={200} depth={50} count={5000} factor={6} saturation={0} fade speed={0.5} />
 
         {planetData.map(planet => <Planet key={planet.name} planetInfo={planet} />)}
 
-        <CelestialOrbit elements={sampleCometData.elements} color="#4ECDC4" opacity={0.7} />
-        <Comet orbitParams={sampleCometData.elements} />
+        {/* Рендерим комету и ее орбиту только если есть данные */}
+        {hasCometData && (
+          <>
+            <CelestialOrbit elements={orbitParams} color="#4ECDC4" opacity={0.7} />
+            <Comet orbitParams={orbitParams} />
+          </>
+        )}
 
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={50} />
       </Canvas>
     </div>
   );
 }
+
+// --- END OF FILE CometOrbitScene.jsx ---
