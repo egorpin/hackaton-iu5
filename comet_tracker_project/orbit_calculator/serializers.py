@@ -22,64 +22,60 @@ COORD_INPUT_FIELDS = [
 ]
 
 class ObservationSerializer(serializers.ModelSerializer):
-    # 💡 Поля для ввода (не хранятся в БД)
-    raHours = serializers.IntegerField(write_only=True, min_value=0, max_value=24, required=False)
-    raMinutes = serializers.IntegerField(write_only=True, min_value=0, max_value=60, required=False)
-    raSeconds = serializers.FloatField(write_only=True, min_value=0.0, max_value=60.0, required=False)
-
-    decDegrees = serializers.IntegerField(write_only=True, min_value=0, max_value=90, required=False)
-    decMinutes = serializers.IntegerField(write_only=True, min_value=0, max_value=60, required=False)
-    decSeconds = serializers.FloatField(write_only=True, min_value=0.0, max_value=60.0, required=False)
-    decSign = serializers.CharField(write_only=True, max_length=1, required=False) # '+' или '-'
+    # ❗️ НОВЫЕ ПОЛЯ: Принимаем RA и Dec в строковом формате H:M:S и D:M:S
+    ra_hms_str = serializers.CharField(write_only=True, required=False, help_text="Прямое восхождение в формате ЧЧ:ММ:СС")
+    dec_dms_str = serializers.CharField(write_only=True, required=False, help_text="Склонение в формате [+/-]ДД:ММ:СС")
 
     class Meta:
         model = Observation
-        # Включаем все вспомогательные поля и основные поля для чтения
+        # Включаем новые строковые поля для записи, сохраняя основные поля для чтения
         fields = (
-            'id',
-            'observation_time',
-            'photo',
-            'ra_deg',
-            'dec_deg',
-            # Поля для записи (Write-only)
-            'raHours', 'raMinutes', 'raSeconds',
-            'decDegrees', 'decMinutes', 'decSeconds', 'decSign'
+            'id', 'observation_time', 'photo',
+            'ra_deg', 'dec_deg',
+            'ra_hms_str', 'dec_dms_str' # Вспомогательные поля для записи
         )
+        # ra_deg и dec_deg по-прежнему только для чтения, они заполняются в validate
         read_only_fields = ('id', 'ra_deg', 'dec_deg')
 
     def validate(self, data):
-        """Конвертируем H/M/S и D/M/S в градусы перед сохранением."""
+        """Конвертируем H:M:S и D:M:S строки в градусы перед сохранением."""
 
-        # 1. RA: Конвертация Hours/Minutes/Seconds в градусы (ra_deg)
-        if all(k in data for k in ['raHours', 'raMinutes', 'raSeconds']):
-            ra_str = f"{data['raHours']}h{data['raMinutes']}m{data['raSeconds']}s"
+        ra_hms_str = data.get('ra_hms_str')
+        dec_dms_str = data.get('dec_dms_str')
+
+        # 1. RA: Конвертация H:M:S в градусы (ra_deg)
+        if ra_hms_str:
+            # Преобразуем формат, подходящий для Angle: hh:mm:ss -> hhmmss.s
             try:
-                ra_angle = Angle(ra_str)
+                # Astropy Angle умеет парсить формат 'hh:mm:ss'
+                ra_angle = Angle(ra_hms_str, unit=u.hour)
                 data['ra_deg'] = ra_angle.deg
             except Exception:
-                raise serializers.ValidationError("Некорректный формат Прямого Восхождения (RA).")
+                raise serializers.ValidationError({"ra_hms_str": "Некорректный формат Прямого Восхождения. Ожидается ЧЧ:ММ:СС."})
 
-        # 2. DEC: Конвертация Degrees/Minutes/Seconds в градусы (dec_deg)
-        if all(k in data for k in ['decDegrees', 'decMinutes', 'decSeconds', 'decSign']):
-            dec_str = f"{data['decSign']}{data['decDegrees']}d{data['decMinutes']}m{data['decSeconds']}s"
+        # 2. DEC: Конвертация [sign]D:M:S в градусы (dec_deg)
+        if dec_dms_str:
+            # Преобразуем формат, подходящий для Angle: [sign]dd:mm:ss -> [sign]ddmmss.s
             try:
-                dec_angle = Angle(dec_str)
+                # Astropy Angle умеет парсить формат '[+/-]dd:mm:ss'
+                dec_angle = Angle(dec_dms_str, unit=u.deg)
                 data['dec_deg'] = dec_angle.deg
             except Exception:
-                raise serializers.ValidationError("Некорректный формат Склонения (Dec).")
+                raise serializers.ValidationError({"dec_dms_str": "Некорректный формат Склонения. Ожидается [+/-]ДД:ММ:СС."})
 
-        # Проверка, что ra_deg и dec_deg установлены (либо через H/M/S, либо уже есть)
-        if 'ra_deg' not in data or 'dec_deg' not in data:
-             raise serializers.ValidationError("Необходимо предоставить полные данные координат.")
+        # Проверка, что ra_deg и dec_deg установлены (если ввод был)
+        if ('ra_hms_str' in data and 'ra_deg' not in data) or \
+           ('dec_dms_str' in data and 'dec_deg' not in data):
+             # Эта ошибка должна быть поймана в try/except выше, но как страховка:
+             raise serializers.ValidationError("Ошибка парсинга координат. Проверьте форматы.")
 
         return data
 
     def create(self, validated_data):
-        # ❗️ FIX: Clean data before creation
+        # Здесь будет ошибка, если ra_deg или dec_deg не были установлены в validate
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # ❗️ FIX: Clean data before update
         return super().update(instance, validated_data)
 
 # --- Основные сериализаторы ---
@@ -118,9 +114,8 @@ class CometCreateSerializer(serializers.ModelSerializer):
 
     def _clean_validated_data(self, validated_data):
         """Helper function to remove temporary input fields."""
-        for k in COORD_INPUT_FIELDS:
-            # Pop the temporary field if it exists
-            validated_data.pop(k, None)
+        validated_data.pop('ra_hms_str', None)
+        validated_data.pop('dec_dms_str', None)
         return validated_data
 
     def create(self, validated_data):
