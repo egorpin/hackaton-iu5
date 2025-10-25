@@ -31,13 +31,16 @@ class ObservationSerializer(serializers.ModelSerializer):
         model = Observation
         # Включаем все вспомогательные поля и основные поля для чтения
         fields = (
-            'id', 'observation_time', 'photo',
-            'ra_deg', 'dec_deg', # Основные поля для чтения
+            'id',
+            'observation_time',
+            'photo',
+            'ra_deg',
+            'dec_deg',
+            # Поля для записи (Write-only)
             'raHours', 'raMinutes', 'raSeconds',
-            'decDegrees', 'decMinutes', 'decSeconds', 'decSign' # Вспомогательные поля для записи
+            'decDegrees', 'decMinutes', 'decSeconds', 'decSign'
         )
         read_only_fields = ('id', 'ra_deg', 'dec_deg')
-        exclude = ('comet',) # 'comet' устанавливается во View
 
     def validate(self, data):
         """Конвертируем H/M/S и D/M/S в градусы перед сохранением."""
@@ -98,7 +101,8 @@ class CometDetailSerializer(serializers.ModelSerializer):
         """Получение последнего прогноза сближения через связанные модели"""
         try:
             # Предполагаем, что у каждой орбиты есть один прогноз сближения
-            return CloseApproachSerializer(obj.elements.approaches.latest('id')).data
+            approach = obj.elements.approach_prediction
+            return CloseApproachSerializer(approach).data
         except CloseApproach.DoesNotExist:
             return None
 

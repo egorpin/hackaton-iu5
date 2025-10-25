@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 import astropy.units as u
-from astropy.coordinates import Angle
+from astropy.coordinates import Angle, SkyCoord
 
 class Comet(models.Model):
     """Модель кометы (или серии наблюдений)."""
@@ -69,7 +69,6 @@ class Observation(models.Model):
     # 💡 Полезный метод для преобразования в формат Astropy SkyCoord
     def to_skycoord(self):
         """Возвращает объект SkyCoord из числовых полей."""
-        from astropy.coordinates import SkyCoord
         return SkyCoord(
             ra=self.ra_deg * u.deg,
             dec=self.dec_deg * u.deg,
@@ -119,20 +118,23 @@ class OrbitalElements(models.Model):
         return f"Орбита {self.comet.name} ({self.calculation_date.date()})"
 
 class CloseApproach(models.Model):
-    """Модель для хранения прогноза минимального сближения с Землей."""
-    orbital_elements = models.ForeignKey(
+    """
+    Прогноз сближения. Использует OneToOneField,
+    гарантируя, что для данного набора элементов орбиты может быть только один прогноз.
+    """
+    # ❗️ ИЗМЕНЕНИЕ: Используем OneToOneField для уникальной связи
+    elements = models.OneToOneField(
         OrbitalElements,
         on_delete=models.CASCADE,
-        related_name='approaches'
+        related_name='approach_prediction'
     )
 
     approach_date = models.DateTimeField(
-        help_text="Дата минимального сближения"
+        help_text="Дата и время минимального сближения"
     )
-
     min_distance_au = models.FloatField(
-        help_text="Минимальное расстояние (а.е.)"
+        help_text="Минимальное расстояние до Земли в а.е."
     )
 
     def __str__(self):
-        return f"Сближение {self.orbital_elements.comet.name} @ {self.approach_date.date()}"
+        return f"Сближение для орбиты {self.elements.id} ({self.approach_date.date()})"

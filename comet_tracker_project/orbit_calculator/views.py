@@ -18,7 +18,7 @@ class CometViewSet(viewsets.ReadOnlyModelViewSet):
 
 class OrbitCalculationView(APIView):
     """
-    POST /api/v1/comets/calculate/
+    POST /api/comets/calculate/
     Принимает имя и 5+ наблюдений, запускает полный расчет.
     """
     def post(self, request, *args, **kwargs):
@@ -54,7 +54,7 @@ class OrbitCalculationView(APIView):
 
 class AddObservationView(APIView):
     """
-    POST /api/v1/comets/<comet_pk>/observations/
+    POST /api/comets/<comet_pk>/observations/
     Добавляет наблюдение к существующей комете и запускает ПЕРЕСЧЕТ.
     """
     def post(self, request, comet_pk, *args, **kwargs):
