@@ -10,7 +10,9 @@ from .serializers import (
 )
 from .services import calculate_orbital_elements, predict_close_approach
 
-# --- ИЗМЕНЕНИЕ: Заменяем ReadOnlyModelViewSet на ModelViewSet ---
+# --- НОВЫЙ ИМПОРТ ДЛЯ ДЕТАЛЬНОЙ ОТЛАДКИ ---
+import traceback
+
 class CometViewSet(viewsets.ModelViewSet):
     """
     Предоставляет полный CRUD для комет.
@@ -28,23 +30,15 @@ class CometViewSet(viewsets.ModelViewSet):
         # Для отображения (список, детали) используем детальный
         return CometDetailSerializer
 
-    # --- ДОБАВЬ ЭТОТ МЕТОД ---
     def create(self, request, *args, **kwargs):
         """
         Переопределяем метод создания, чтобы вернуть детальный ответ.
         """
-        # 1. Валидируем входящие данные с помощью простого сериализатора
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # 2. Создаем объект кометы
         self.perform_create(serializer)
-
-        # 3. Для ответа на фронтенд используем ДЕТАЛЬНЫЙ сериализатор,
-        # чтобы фронтенд получил всю нужную информацию (id, пустые наблюдения и т.д.)
         instance = serializer.instance
         response_serializer = CometDetailSerializer(instance)
-
         headers = self.get_success_headers(response_serializer.data)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -86,7 +80,8 @@ class OrbitCalculationView(APIView):
 class AddObservationView(APIView):
     """
     POST /api/comets/<comet_pk>/observations/
-    Добавляет наблюдение к существующей комете и запускает ПЕРЕСЧЕТ.
+    Добавляет наблюдение к существующей комете и запускает ПЕРЕСЧЕТ,
+    если наблюдений достаточно.
     """
     def post(self, request, comet_pk, *args, **kwargs):
         comet = get_object_or_404(Comet, pk=comet_pk)
@@ -96,15 +91,32 @@ class AddObservationView(APIView):
 
         serializer.save(comet=comet)
 
-        try:
-            elements = calculate_orbital_elements(comet)
-            predict_close_approach(elements)
-            detail_serializer = CometDetailSerializer(comet)
-            return Response(detail_serializer.data, status=status.HTTP_200_OK)
+        if comet.observations.count() >= 3:
+            try:
+                elements = calculate_orbital_elements(comet)
+                if elements:
+                    predict_close_approach(elements)
 
-        except Exception as e:
-            return Response(
-                {"error": f"Наблюдение добавлено, но пересчет орбиты не удался: {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            except Exception as e:
+                # --- ИЗМЕНЕНИЯ ЗДЕСЬ: ДОБАВЛЕН ПОДРОБНЫЙ ВЫВОД ОШИБКИ В КОНСОЛЬ ---
+                # 1. Выводим полную информацию об ошибке в консоль сервера
+                print("="*60)
+                print(f"!!! КРИТИЧЕСКАЯ ОШИБКА РАСЧЕТА ОРБИТЫ ДЛЯ КОМЕТЫ ID={comet.id} !!!")
+                # Эта команда напечатает полный путь ошибки: файл, строку и причину
+                traceback.print_exc()
+                print(f"!!! ТЕКСТ ИСКЛЮЧЕНИЯ: {e} !!!")
+                print("="*60)
+
+                # 2. Логика ответа остается прежней, чтобы фронтенд не падал
+                detail_serializer = CometDetailSerializer(comet)
+                response_data = detail_serializer.data
+                response_data['calculation_warning'] = f"Наблюдение добавлено, но пересчет орбиты не удался. См. консоль сервера для деталей."
+                return Response(response_data, status=status.HTTP_200_OK)
+
+        # Если наблюдений меньше 3 ИЛИ если расчет прошел успешно,
+        # мы попадаем сюда. Возвращаем актуальные данные о комете.
+        detail_serializer = CometDetailSerializer(comet)
+        return Response(detail_serializer.data, status=status.HTTP_200_OK)
+
+
 # --- END OF FILE views.py ---

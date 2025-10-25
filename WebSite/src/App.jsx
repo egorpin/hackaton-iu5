@@ -160,20 +160,30 @@ function App() {
           <div className="content">
             <div className="title" data-aos="fade-up" data-aos-delay="200">
               <h2>3D ВИЗУАЛИЗАЦИЯ ОРБИТЫ</h2>
-              <h1>{selectedComet ? `Траектория кометы "${selectedComet.name}"` : 'Демонстрационная орбита'}</h1>
+              <h1>{selectedComet?.elements ? `Траектория кометы "${selectedComet.name}"` : 'Демонстрационная орбита'}</h1>
             </div>
             <div className="orbit-visualization" data-aos="fade-up" data-aos-delay="400">
               <div className="visualization-container">
                 <CometOrbitScene orbitParams={orbitParamsForScene} />
               </div>
               <div className="orbit-info">
-                {selectedComet ? (
+                {/* --- ВОТ ИЗМЕНЕНИЕ: проверяем selectedComet И selectedComet.elements --- */}
+                {selectedComet && selectedComet.elements ? (
                   <ResultsDisplay
                     orbitParams={selectedComet.elements}
                     closeApproach={selectedComet.close_approach}
                     observations={selectedComet.observations}
                   />
-                ) : ( <div className="calculation-info"><p>🌟 Комета не выбрана. Выберите объект из списка выше.</p></div> )}
+                ) : (
+                  <div className="calculation-info">
+                    <p>
+                      🌟 {(selectedComet)
+                          ? `Для кометы "${selectedComet.name}" еще не рассчитана орбита. Необходимо минимум 3 наблюдения.`
+                          : 'Комета не выбрана. Выберите объект из списка выше.'
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

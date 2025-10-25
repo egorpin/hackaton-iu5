@@ -25,6 +25,7 @@ COORD_INPUT_FIELDS = [
 ]
 
 class ObservationSerializer(serializers.ModelSerializer):
+    # Эти поля остаются как есть
     ra_hms_str = serializers.CharField(write_only=True, required=False, help_text="Прямое восхождение в формате ЧЧ:ММ:СС")
     dec_dms_str = serializers.CharField(write_only=True, required=False, help_text="Склонение в формате [+/-]ДД:ММ:СС")
 
@@ -39,6 +40,7 @@ class ObservationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Конвертируем H:M:S и D:M:S строки в градусы перед сохранением."""
+        # Эта функция остается без изменений, она работает правильно.
         ra_hms_str = data.get('ra_hms_str')
         dec_dms_str = data.get('dec_dms_str')
 
@@ -61,6 +63,20 @@ class ObservationSerializer(serializers.ModelSerializer):
              raise serializers.ValidationError("Ошибка парсинга координат. Проверьте форматы.")
 
         return data
+
+    # --- ВОТ КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: ДОБАВЛЯЕМ ЭТОТ МЕТОД ---
+    def create(self, validated_data):
+        """
+        Переопределяем метод создания, чтобы удалить временные поля перед сохранением.
+        """
+        # Удаляем строковые поля, так как их нет в модели Observation.
+        # Второй аргумент `None` нужен для того, чтобы не было ошибки, если поле отсутствует.
+        validated_data.pop('ra_hms_str', None)
+        validated_data.pop('dec_dms_str', None)
+
+        # Создаем объект Observation, используя только те данные,
+        # которые соответствуют полям модели.
+        return Observation.objects.create(**validated_data)
 
 # --- Основные сериализаторы ---
 

@@ -3,7 +3,14 @@
 import React from 'react';
 
 export default function ResultsDisplay({ orbitParams, closeApproach, observations }) {
-  if (!orbitParams) return null;
+  // Эта проверка остается, она важна
+  if (!orbitParams) {
+    return (
+      <div className="calculation-info">
+        <p>Недостаточно данных для отображения орбиты.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="results-section">
@@ -12,30 +19,31 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
       <div className="param-grid">
         <div className="param-item">
           <div className="param-label">Большая полуось (a)</div>
-          <div className="param-value">{orbitParams.semimajor_axis.toFixed(3)} а.е.</div>
+          {/* --- ИЗМЕНЕНИЕ: Добавляем проверки --- */}
+          <div className="param-value">{orbitParams.semimajor_axis?.toFixed(3) ?? 'N/A'} а.е.</div>
         </div>
 
         <div className="param-item">
           <div className="param-label">Эксцентриситет (e)</div>
-          <div className="param-value">{orbitParams.eccentricity.toFixed(3)}</div>
+          <div className="param-value">{orbitParams.eccentricity?.toFixed(3) ?? 'N/A'}</div>
         </div>
 
         <div className="param-item">
           <div className="param-label">Наклонение (i)</div>
-          <div className="param-value">{orbitParams.inclination.toFixed(2)}°</div>
+          <div className="param-value">{orbitParams.inclination?.toFixed(2) ?? 'N/A'}°</div>
         </div>
 
         <div className="param-item">
           <div className="param-label">Долгота восх. узла (Ω)</div>
-          <div className="param-value">{orbitParams.ra_of_node.toFixed(2)}°</div>
+          <div className="param-value">{orbitParams.ra_of_node?.toFixed(2) ?? 'N/A'}°</div>
         </div>
 
         <div className="param-item">
           <div className="param-label">Аргумент перицентра (ω)</div>
-          <div className="param-value">{orbitParams.arg_of_pericenter.toFixed(2)}°</div>
+          <div className="param-value">{orbitParams.arg_of_pericenter?.toFixed(2) ?? 'N/A'}°</div>
         </div>
 
-        {/* Добавим проверку на наличие `period` */}
+        {/* Проверка на наличие `period` уже была, она хорошая */}
         {orbitParams.period && (
             <div className="param-item">
                 <div className="param-label">Период обращения</div>
