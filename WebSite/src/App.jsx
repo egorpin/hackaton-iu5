@@ -1,4 +1,4 @@
-// --- START OF FILE App.jsx ---
+// src/App.jsx
 
 import React, { useState, useEffect } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
@@ -111,7 +111,8 @@ function App() {
 
       {/* --- ВОТ ЭТА СЕКЦИЯ БЫЛА ПОТЕРЯНА. ТЕПЕРЬ ОНА НА МЕСТЕ --- */}
       <section className="status">
-        <div className="container">
+        {/* ... (содержимое секции status без изменений) ... */}
+         <div className="container">
           <div className="content">
             <div className="title" data-aos="fade-down" data-aos-delay="400">
               <h2>ТЕХНОЛОГИИ РАСЧЕТА</h2>
@@ -196,4 +197,3 @@ function App() {
 }
 
 export default App;
-// --- END OF FILE App.jsx ---
