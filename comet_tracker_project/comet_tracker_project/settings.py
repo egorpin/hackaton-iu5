@@ -100,6 +100,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Используем токенную аутентификацию (предпочтительнее для API)
+        'rest_framework.authentication.TokenAuthentication',
+
+        # Если вы хотите разрешить POST-запросы без CSRF-токена
+        # (ТОЛЬКО для API-first приложений, где сессии не используются):
+        # 'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny', # Разрешить любой доступ для POST
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
