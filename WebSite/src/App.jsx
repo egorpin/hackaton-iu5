@@ -47,8 +47,8 @@ function App() {
     headerScript();
   }, []);
 
-  const handleOrbitCalculated = (params, obs) => {
-    setOrbitParams(params);
+  const handleOrbitCalculated = (params, obsm, cometId, cometName) => {
+    setOrbitParams({params, cometId: cometId, cometName: cometName});
     setObservations(obs);
     setShowDefaultOrbit(false);
   };

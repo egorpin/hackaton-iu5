@@ -835,6 +835,8 @@ footer p {
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
   padding: 4rem 0;
+  position: relative;
+  z-index: 1;
 }
 
 .visualization-3d .container .content {
@@ -879,20 +881,20 @@ footer p {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.visualization-container {
+  align-items: start;
   position: relative;
-  width: 100%;
-  height: 600px;
+  z-index: 1;
+}
+.visualization-container {
   background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  height: 500px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem; /* Добавляем отступ снизу */
 }
 
 .orbit-info {
@@ -1477,4 +1479,446 @@ footer p {
   .photo-upload-subtitle {
     font-size: 0.9rem;
   }
+}
+
+/* Стили для управления кометами */
+.comets-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 10;
+}
+
+.comets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.comets-header h4 {
+  color: var(--primary);
+  margin: 0;
+}
+
+.comets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.comet-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.comet-item.active {
+  border-color: var(--primary);
+  background: rgba(130, 200, 229, 0.05);
+}
+
+.comet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.comet-name-input {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.comet-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.comet-stats {
+  font-size: 0.85rem;
+  color: var(--lightgray);
+}
+
+.comet-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.comet-toggle-btn,
+.comet-select-btn,
+.comet-remove-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comet-select-btn.active {
+  background: var(--primary);
+  color: var(--black);
+}
+
+.comet-toggle-btn:hover,
+.comet-select-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.comet-remove-btn:hover {
+  background: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.comet-observations {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.no-observations {
+  text-align: center;
+  color: var(--gray);
+  font-style: italic;
+  padding: 1rem;
+}
+
+.observation-mini {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.observation-mini span {
+  flex: 1;
+}
+
+.btn-danger-small {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 4px;
+  padding: 0.25rem;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger-small:hover {
+  background: rgba(255, 107, 107, 0.3);
+}
+
+.observation-input-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.current-comet-info {
+  margin-bottom: 1.5rem;
+}
+
+.current-comet-info h4 {
+  color: var(--white);
+  margin: 0;
+}
+
+.comet-name {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .comets-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .comet-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .comet-actions {
+    justify-content: center;
+  }
+
+  .observation-mini {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Стили для кнопки добавления кометы */
+.btn-add-comet {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  border-radius: 12px;
+  color: var(--black);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(130, 200, 229, 0.3);
+}
+
+.btn-add-comet:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(130, 200, 229, 0.4);
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
+}
+
+.btn-add-comet:active {
+  transform: translateY(0);
+}
+
+.btn-add-comet .btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Адаптивность для кнопки */
+@media (max-width: 768px) {
+  .btn-add-comet {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+  }
+
+  .comets-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .comets-header h4 {
+    text-align: center;
+  }
+}
+
+/* Улучшенные стили для мини-наблюдений */
+.observation-mini {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  border-left: 3px solid var(--primary);
+}
+
+.obs-date {
+  font-weight: 600;
+  color: var(--white);
+}
+
+.obs-ra, .obs-dec {
+  font-family: 'Courier New', monospace;
+  color: var(--lightgray);
+}
+
+.obs-photo-icon {
+  color: var(--accent);
+  width: 14px;
+  height: 14px;
+}
+
+/* Улучшенные стили для кнопок управления кометой */
+.comet-toggle-btn,
+.comet-select-btn,
+.comet-remove-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.6rem;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.comet-toggle-btn:hover,
+.comet-select-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.comet-select-btn.active {
+  background: var(--primary);
+  color: var(--black);
+  box-shadow: 0 2px 10px rgba(130, 200, 229, 0.4);
+}
+
+.comet-remove-btn:hover {
+  background: #ff6b6b;
+  border-color: #ff6b6b;
+  transform: translateY(-1px);
+}
+
+/* Адаптивность для мини-наблюдений */
+@media (max-width: 768px) {
+  .observation-mini {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .obs-date {
+    grid-column: 1 / -1;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+    border-radius: 4px;
+  }
+}
+
+.btn-primary, .btn-add-comet, .btn-secondary {
+  position: relative;
+  z-index: 10;
+}
+
+/* Исправление проблемы с наложением 3D сцены */
+.visualization-3d {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+  padding: 4rem 0;
+  position: relative;
+  overflow: hidden; /* Важно: обрезаем выходящие элементы */
+}
+
+.visualization-3d .container {
+  position: relative;
+  z-index: 2; /* Поднимаем контент над фоном */
+}
+
+/* Контейнер для 3D сцены с изоляцией */
+.visualization-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  height: 500px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  /* Изолируем контекст наложения */
+  isolation: isolate;
+  transform: translateZ(0); /* Создаем новый контекст наложения */
+}
+
+/* Ограничиваем canvas внутри контейнера */
+.visualization-container canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  z-index: 1 !important;
+}
+
+/* Убедимся, что все интерактивные элементы выше */
+.observation-form,
+.comets-panel,
+.observation-input-section,
+.btn-primary,
+.btn-add-comet {
+  position: relative;
+  z-index: 100 !important;
+}
+
+/* Специфично для кнопки добавления наблюдения */
+.observation-input-section .btn-primary {
+  margin-top: 2rem;
+  position: relative;
+  z-index: 1000 !important;
+  transform: translateZ(100px); /* Принудительно поднимаем в 3D пространстве */
+}
+
+/* Секция с формой ввода - поднимаем выше */
+.why-us {
+  position: relative;
+  z-index: 200;
+}
+
+/* Если проблема сохраняется, добавим обертку с ограничением */
+.visualization-wrapper {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout; /* Оптимизация браузера */
+}
+
+@media (min-width: 769px) {
+  .visualization-container {
+    height: 450px; /* Чуть уменьшаем высоту */
+  }
+}
+
+/* Clearfix для разделения секций */
+.section-divider {
+  position: relative;
+  z-index: 1000;
+  height: 1px;
+  background: transparent;
+  margin: 2rem 0;
+}
+
+/* Принудительное создание нового контекста наложения */
+.force-new-context {
+  transform: translateZ(0);
+  position: relative;
+  z-index: 1000;
+}
+.visualization-3d {
+    margin-top: 190px;
 }
