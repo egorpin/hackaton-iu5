@@ -1,6 +1,7 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+import astropy.units as u
 from astropy.coordinates import Angle
-from django.core.validators import MinValueValidator
 
 class Comet(models.Model):
     """Модель кометы (или серии наблюдений)."""
@@ -11,29 +12,21 @@ class Comet(models.Model):
         return self.name
 
 class Observation(models.Model):
-    """Модель одного астрономического наблюдения."""
     comet = models.ForeignKey(Comet, on_delete=models.CASCADE, related_name='observations')
-
-    # Время наблюдения (используется для TDB)
     observation_time = models.DateTimeField(
         help_text="Время наблюдения (UTC)"
     )
 
-    # Прямое восхождение (Right Ascension)
-    # Храним в виде строки для простоты ввода/вывода,
-    # но можно хранить в секундах или радианах.
-    ra_hms = models.CharField(
-        max_length=15,
-        help_text="Прямое восхождение (чч:мм:сс.сс)"
+    # 💡 Основные поля для хранения (в градусах)
+    ra_deg = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(360.0)],
+        help_text="Прямое восхождение (RA) в градусах"
+    )
+    dec_deg = models.FloatField(
+        validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)],
+        help_text="Склонение (Dec) в градусах"
     )
 
-    # Склонение (Declination)
-    dec_dms = models.CharField(
-        max_length=15,
-        help_text="Склонение (+/-дд:мм:сс.с)"
-    )
-
-    # Дополнительные поля для улучшения (например, изображение)
     photo = models.ImageField(
         upload_to='comet_photos/',
         null=True,
@@ -42,6 +35,46 @@ class Observation(models.Model):
 
     def __str__(self):
         return f"Наблюдение {self.id} для {self.comet.name} @ {self.observation_time}"
+
+    # ==========================================================
+    # 💡 Методы для преобразования в формат H/M/S и D/M/S
+    # ==========================================================
+
+    @property
+    def ra_hms_parts(self):
+        """Возвращает части RA (часы, минуты, секунды) из ra_deg."""
+        hms = Angle(self.ra_deg * u.deg).to_string(unit=u.hour, sep=('h', 'm', 's')).split()
+        return {
+            'raHours': int(hms[0][:-1]),
+            'raMinutes': int(hms[1][:-1]),
+            'raSeconds': float(hms[2][:-1])
+        }
+
+    @property
+    def dec_dms_parts(self):
+        """Возвращает части Dec (знак, градусы, минуты, секунды) из dec_deg."""
+        dms_str = Angle(self.dec_deg * u.deg).to_string(unit=u.deg, sep=('d', 'm', 's'), precision=1)
+        sign = '+' if self.dec_deg >= 0 else '-'
+
+        # Удаляем знак для парсинга
+        dms_parts = dms_str.replace('+', '').replace('-', '').split()
+
+        return {
+            'decSign': sign,
+            'decDegrees': int(dms_parts[0][:-1]),
+            'decMinutes': int(dms_parts[1][:-1]),
+            'decSeconds': float(dms_parts[2][:-1])
+        }
+
+    # 💡 Полезный метод для преобразования в формат Astropy SkyCoord
+    def to_skycoord(self):
+        """Возвращает объект SkyCoord из числовых полей."""
+        from astropy.coordinates import SkyCoord
+        return SkyCoord(
+            ra=self.ra_deg * u.deg,
+            dec=self.dec_deg * u.deg,
+            frame='icrs'
+        )
 
 class OrbitalElements(models.Model):
     """Модель для хранения 6 элементов орбиты кометы."""
