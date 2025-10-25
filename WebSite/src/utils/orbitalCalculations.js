@@ -9,6 +9,10 @@ export function calculateOrbitFromObservations(observations) {
   // Временная заглушка - в реальности будет запрос к Django API
   console.log('Отправка наблюдений на бэкенд:', observations);
 
+  // Логируем информацию о фото
+  const photosCount = observations.filter(obs => obs.photo).length;
+  console.log(`Наблюдений с фото: ${photosCount}`);
+
   // Имитация параметров кометы (как в Don't Look Up)
   return {
     semiMajorAxis: 15.8 + Math.random() * 4,
@@ -16,7 +20,8 @@ export function calculateOrbitFromObservations(observations) {
     inclination: 120 + Math.random() * 40,
     longitudeOfAscNode: 45 + Math.random() * 30,
     argOfPeriapsis: 90 + Math.random() * 40,
-    period: calculateOrbitalPeriod(15.8)
+    period: calculateOrbitalPeriod(15.8),
+    photosCount: photosCount
   };
 }
 

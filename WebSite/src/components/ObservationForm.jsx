@@ -7,8 +7,45 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
     date: '',
     time: '',
     raHours: '', raMinutes: '', raSeconds: '',
-    decDegrees: '', decMinutes: '', decSeconds: '', decSign: '+'
+    decDegrees: '', decMinutes: '', decSeconds: '', decSign: '+',
+    photo: null,
+    photoPreview: null
   });
+
+  const handlePhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Проверяем тип файла
+      if (!file.type.startsWith('image/')) {
+        alert('Пожалуйста, выберите файл изображения');
+        return;
+      }
+
+      // Проверяем размер файла (максимум 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Размер файла не должен превышать 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCurrentObs({
+          ...currentObs,
+          photo: file,
+          photoPreview: e.target.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setCurrentObs({
+      ...currentObs,
+      photo: null,
+      photoPreview: null
+    });
+  };
 
   const handleAddObservation = () => {
     if (!currentObs.date || !currentObs.time) {
@@ -41,7 +78,9 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
       datetime: `${currentObs.date}T${currentObs.time}`,
       ra: raDecimal,
       dec: signedDec,
-      timestamp: new Date(`${currentObs.date}T${currentObs.time}`).getTime()
+      timestamp: new Date(`${currentObs.date}T${currentObs.time}`).getTime(),
+      photo: currentObs.photoPreview,
+      photoName: currentObs.photo ? currentObs.photo.name : null
     };
 
     const updatedObservations = [...observations, newObservation];
@@ -69,7 +108,9 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
     setCurrentObs({
       date: '', time: '',
       raHours: '', raMinutes: '', raSeconds: '',
-      decDegrees: '', decMinutes: '', decSeconds: '', decSign: '+'
+      decDegrees: '', decMinutes: '', decSeconds: '', decSign: '+',
+      photo: null,
+      photoPreview: null
     });
   };
 
@@ -184,8 +225,46 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
         </div>
       </div>
 
+      {/* Секция загрузки фото */}
+      <div className="form-group">
+        <label>Фотография кометы (опционально)</label>
+        <div className="photo-upload-section">
+          {!currentObs.photoPreview ? (
+            <div className="photo-upload-area">
+              <input
+                type="file"
+                id="photo-upload"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="photo-upload" className="photo-upload-btn">
+                <i data-feather="camera" className="btn-icon"></i>
+                Загрузить фото
+              </label>
+              <p className="photo-upload-hint">JPG, PNG до 5MB</p>
+            </div>
+          ) : (
+            <div className="photo-preview">
+              <div className="photo-preview-image">
+                <img src={currentObs.photoPreview} alt="Предпросмотр" />
+                <button
+                  type="button"
+                  className="photo-remove-btn"
+                  onClick={removePhoto}
+                >
+                  <i data-feather="x"></i>
+                </button>
+              </div>
+              <p className="photo-name">{currentObs.photo?.name}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <button className="btn-primary" onClick={handleAddObservation}>
-        ➕ Добавить наблюдение
+        <i data-feather="plus" className="btn-icon"></i>
+        Добавить наблюдение
       </button>
 
       {observations.length > 0 && (
@@ -193,20 +272,33 @@ export default function ObservationForm({ onOrbitCalculated, existingObservation
           <h4 style={{ color: '#ffd700', marginBottom: '1rem', textAlign: 'center' }}>
             📋 Список наблюдений: {observations.length}
           </h4>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
             {observations.map(obs => (
               <div key={obs.id} className="observation-item">
-                <div>
-                  <strong>Время:</strong> {new Date(obs.timestamp).toLocaleString('ru-RU')}
+                <div className="observation-header">
+                  <div>
+                    <strong>Время:</strong> {new Date(obs.timestamp).toLocaleString('ru-RU')}
+                  </div>
+                  {obs.photo && (
+                    <span className="photo-badge">
+                      <i data-feather="image"></i> Фото
+                    </span>
+                  )}
                 </div>
                 <div>
                   <strong>RA:</strong> {obs.ra.toFixed(4)}° | <strong>Dec:</strong> {obs.dec.toFixed(4)}°
                 </div>
+                {obs.photo && (
+                  <div className="observation-photo">
+                    <img src={obs.photo} alt="Фото наблюдения" />
+                  </div>
+                )}
                 <button
                   className="btn-danger"
                   onClick={() => removeObservation(obs.id)}
                 >
-                  🗑️ Удалить
+                  <i data-feather="trash-2" className="btn-icon"></i>
+                  Удалить
                 </button>
               </div>
             ))}
