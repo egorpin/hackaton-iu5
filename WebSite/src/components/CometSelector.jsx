@@ -1,36 +1,79 @@
-// --- START OF FILE CometSelector.jsx ---
+// src/components/CometSelector.jsx
+import React, { useState, useEffect } from 'react';
 
-import React from 'react';
+// URL вашего бэкенда. Убедитесь, что он правильный.
+const API_URL = 'http://localhost:8000/api/comets/';
 
-export default function CometSelector({ comets, onSelectComet }) {
-  if (!comets || comets.length === 0) {
-    return <p>Нет рассчитанных комет.</p>;
+export default function CometSelector({ onCometSelect, selectedCometId }) {
+  const [comets, setComets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchComets() {
+      try {
+        setLoading(true);
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error(`Ошибка сети: ${response.status}`);
+        }
+        const data = await response.json();
+        setComets(data);
+        setError(null);
+      } catch (err) {
+        setError(`Не удалось загрузить данные: ${err.message}. Убедитесь, что backend-сервер запущен.`);
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchComets();
+  }, []); // Пустой массив зависимостей означает, что эффект выполнится один раз при монтировании
+
+  if (loading) {
+    return <div className="loading-state">Загрузка списка комет...</div>;
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
   }
 
   return (
-    <div style={{ marginBottom: '1.5rem', width: '100%' }}>
-      <label htmlFor="comet-select" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-        Выберите комету для просмотра:
-      </label>
-      <select
-        id="comet-select"
-        onChange={(e) => onSelectComet(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          background: 'rgba(0,0,0,0.3)',
-          border: '1px solid var(--primary)',
-          borderRadius: '8px',
-          color: 'white',
-          fontSize: '1rem'
-        }}
-      >
-        {comets.map(comet => (
-          <option key={comet.id} value={comet.id}>
-            {comet.name}
-          </option>
-        ))}
-      </select>
+    <div className="comet-selector-section">
+      <h3>🌌 Выберите комету из базы данных</h3>
+      {comets.length === 0 ? (
+        <p>Кометы не найдены. Добавьте их через форму наблюдений.</p>
+      ) : (
+        <table className="comet-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Название</th>
+              <th>Кол-во наблюдений</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comets.map(comet => (
+              <tr
+                key={comet.id}
+                className={selectedCometId === comet.id ? 'selected-row' : ''}
+                onClick={() => onCometSelect(comet)}
+              >
+                <td>{comet.id}</td>
+                <td>{comet.name}</td>
+                <td>{comet.observations.length}</td>
+                <td>
+                  <button className="btn-secondary">
+                    {selectedCometId === comet.id ? '✓ Выбрана' : 'Показать'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+// src/App.jsx
+
+import React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
 import ObservationForm from './components/ObservationForm';
 import CometSelector from './components/CometSelector';
@@ -6,145 +9,115 @@ import ResultsDisplay from './components/ResultsDisplay';
 import '../style.css';
 
 function App() {
-  // --- СОСТОЯНИЕ ПРИЛОЖЕНИЯ ---
-  const [allComets, setAllComets] = useState([]); // Список всех комет с бэкенда
-  const [activeComet, setActiveComet] = useState(null); // Выбранная комета для отображения
-  const [isLoading, setIsLoading] = useState(true); // Флаг загрузки
+  const [orbitParams, setOrbitParams] = useState(null);
+  const [observations, setObservations] = useState([]);
+  const [closeApproach, setCloseApproach] = useState(null);
+  const [selectedComet, setSelectedComet] = useState(null);
 
-  // Параметры для демо-орбиты (если загрузка с бэка не удалась)
-  const defaultOrbitForScene = {
-    semimajor_axis: 10.5,
-    eccentricity: 0.85,
-    inclination: 45,
-    ra_of_node: 75,
-    arg_of_pericenter: 120,
-  };
-
-  // --- Загрузка списка комет с бэкенда при первом запуске ---
   useEffect(() => {
-    const fetchComets = async () => {
-      try {
-        // ❗️ ВАЖНО: ЗАМЕНИТЬ НА ПОЛНЫЙ URL ТВОЕГО БЭКЕНДА, ЕСЛИ ОН НА ДРУГОМ ПОРТУ
-        // Например: 'http://127.0.0.1:8000/api/comets/'
-        const response = await fetch('/api/comets/');
-
-        if (!response.ok) {
-          throw new Error(`Ошибка сети: ${response.status}`);
-        }
-        const data = await response.json();
-        setAllComets(data);
-
-        if (data && data.length > 0) {
-          setActiveComet(data[0]); // Выбираем первую комету по умолчанию
-        }
-      } catch (error) {
-        console.error("Не удалось загрузить кометы:", error);
-        // В случае ошибки показываем демо-комету
-        setActiveComet({ name: "Демо-комета", elements: defaultOrbitForScene });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchComets();
-
-    // Код для анимации и скролла
-    if (window.AOS) window.AOS.init();
-    if (window.feather) window.feather.replace();
-    headerScript();
+    if (window.AOS) {
+      window.AOS.init({ once: true });
+    }
+    if (window.feather) {
+      window.feather.replace();
+    }
   }, []);
 
-  // --- ОБРАБОТЧИКИ ---
-
-  // Выбор кометы из списка
-  const handleSelectComet = (cometId) => {
-    const selected = allComets.find(c => c.id === parseInt(cometId));
-    setActiveComet(selected);
+  const handleOrbitCalculated = (params, obs, approach) => {
+    setOrbitParams(params);
+    setObservations(obs);
+    setCloseApproach(approach);
+    setSelectedComet(null); // Сбрасываем выбор, чтобы показать новую рассчитанную орбиту
   };
 
-  // Обработка новой кометы, рассчитанной на бэкенде
-  const handleNewCometCalculated = (newCometData) => {
-    // Добавляем новую комету в общий список
-    setAllComets(prevComets => [...prevComets, newCometData]);
-    // И сразу делаем ее активной для просмотра
-    setActiveComet(newCometData);
-    // Плавный скролл к результатам
-    scrollToVisualization();
+  const handleCometSelect = (comet) => {
+    setSelectedComet(comet);
+    setOrbitParams(null);
+    setObservations([]);
+    setCloseApproach(null);
+    document.getElementById('visualization-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // --- Вспомогательные функции (скролл, анимация шапки) ---
-  const headerScript = () => {
-      let lastScrollTop = 0;
-      const header = document.querySelector("header");
-      const toTop = document.querySelector(".to-top");
-      const heroSection = document.querySelector(".hero");
-      if (!header || !toTop || !heroSection) return;
-      window.addEventListener("scroll", () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > heroSection.offsetTop) toTop.classList.add("active");
-        else toTop.classList.remove("active");
-        if (scrollTop > lastScrollTop) header.classList.add("hidden");
-        else header.classList.remove("hidden");
-        lastScrollTop = scrollTop;
-      });
+  // ❗️ ИЗМЕНЕННАЯ ЛОГИКА: теперь возвращает null по умолчанию
+  const activeOrbitData = useMemo(() => {
+    // 1. Приоритет у выбранной кометы с бэкенда
+    if (selectedComet && selectedComet.elements) {
+      return {
+        source: 'backend',
+        name: selectedComet.name,
+        params: selectedComet.elements,
+        observations: selectedComet.observations,
+        approach: selectedComet.close_approach,
+      };
+    }
+    // 2. Если есть свежерассчитанная орбита на клиенте
+    if (orbitParams) {
+      return {
+        source: 'calculated',
+        name: 'Новая рассчитанная комета',
+        params: {
+          semimajor_axis: orbitParams.semiMajorAxis,
+          eccentricity: orbitParams.eccentricity,
+          inclination: orbitParams.inclination,
+          ra_of_node: orbitParams.longitudeOfAscNode,
+          arg_of_pericenter: orbitParams.argOfPeriapsis,
+          period: orbitParams.period,
+        },
+        observations: observations,
+        approach: closeApproach,
+      };
+    }
+    // 3. ❗️ Если данных нет — возвращаем null. Сцена будет пустой.
+    return null;
+  }, [selectedComet, orbitParams, observations, closeApproach]);
+
+  const scrollToObservations = () => {
+    document.getElementById('observations-section')?.scrollIntoView({ behavior: 'smooth' });
   };
-  const scrollToObservations = () => document.getElementById('observations-section').scrollIntoView({ behavior: 'smooth' });
-  const scrollToVisualization = () => document.getElementById('visualization-section').scrollIntoView({ behavior: 'smooth' });
+
+  const scrollToVisualization = () => {
+    document.getElementById('visualization-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <>
-      <header data-aos="fade-down" data-aos-delay="200">
-        <div className="container">
-          <div className="content">
-            <div data-aos="fade-down-right" data-aos-delay="300" className="logo">
-              <img src="/assets/saturn.png" alt="logo" />
-              <a href="#">404: logic not found</a>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <header data-aos="fade-down" data-aos-delay="200">{/* ... */}</header>
       <a href="#" className="to-top"><i data-feather="chevron-up"></i></a>
-
-      <section className="hero">
-        <div className="container">
-          <div className="content">
-            <div className="text">
-              <h1 data-aos="fade-up" data-aos-delay="200">Определение орбиты кометы</h1>
-              <p data-aos="fade-up" data-aos-delay="300">
-                Отслеживайте <span>небесные объекты</span> и рассчитывайте их орбиты
-                с помощью <span>современных алгоритмов</span> определения траекторий
-                по <span>астрометрическим наблюдениям</span>.
-              </p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <a href="#" data-aos="fade-up" data-aos-delay="400" onClick={scrollToObservations}>
-                  Рассчитать новую
-                </a>
-                <a href="#" data-aos="fade-up" data-aos-delay="500" onClick={scrollToVisualization}
-                   style={{ background: 'transparent', border: '2px solid var(--primary)' }}>
-                  Посмотреть 3D модель
-                </a>
-              </div>
-            </div>
-            <div className="moon"></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="status">{/* ... код секции без изменений ... */}</section>
+      <section className="hero">{/* ... */}</section>
+      <section className="status">{/* ... */}</section>
 
       <section id="observations-section" className="why-us">
         <div className="container">
           <div className="content">
             <div className="title" data-aos="fade-up" data-aos-delay="400">
-              <h2>РАССЧИТАТЬ НОВУЮ ОРБИТУ</h2>
+              <h2>СИСТЕМА ОПРЕДЕЛЕНИЯ ОРБИТ</h2>
               <h1>Введите данные наблюдений</h1>
-              <p>Добавьте минимум 5 наблюдений для отправки на сервер и расчета орбиты новой кометы.</p>
+              <p>Добавьте минимум 3 астрометрических наблюдения для расчета орбиты.</p>
             </div>
             <div className="reason">
               <div className="card" data-aos="fade-up" data-aos-delay="400" style={{ width: '100%', height: 'auto' }}>
-                <ObservationForm onNewCometCalculated={handleNewCometCalculated} />
+                <ObservationForm onOrbitCalculated={handleOrbitCalculated} existingObservations={observations} />
               </div>
+              {orbitParams && (
+                <div className="card" data-aos="fade-up" data-aos-delay="200" style={{ width: '100%', height: 'auto', marginTop: '2rem' }}>
+                  <ResultsDisplay orbitParams={orbitParams} closeApproach={closeApproach} observations={observations} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="selector-section" className="comet-database">
+        <div className="container">
+          <div className="content">
+            <div className="title" data-aos="fade-up" data-aos-delay="400">
+              <h2>БАЗА ДАННЫХ</h2>
+              <h1>Исследуйте известные кометы</h1>
+              <p>Выберите комету из списка, чтобы загрузить ее орбиту и визуализировать траекторию.</p>
+            </div>
+            <div className="card" data-aos="fade-up" data-aos-delay="500" style={{ width: '100%' }}>
+              <CometSelector onCometSelect={handleCometSelect} selectedCometId={selectedComet ? selectedComet.id : null} />
             </div>
           </div>
         </div>
@@ -155,36 +128,67 @@ function App() {
           <div className="content">
             <div className="title" data-aos="fade-up" data-aos-delay="200">
               <h2>3D ВИЗУАЛИЗАЦИЯ ОРБИТЫ</h2>
-              <h1>{activeComet ? activeComet.name : 'Траектория движения кометы'}</h1>
-              <p>Интерактивная 3D модель орбиты. Выберите существующую комету или рассчитайте новую.</p>
+              {/* ❗️ Заголовок меняется в зависимости от того, есть ли данные */}
+              <h1>{activeOrbitData ? activeOrbitData.name : 'Нет данных для отображения'}</h1>
+              <p>Интерактивная 3D модель орбиты. Используйте мышь для вращения и масштабирования.</p>
             </div>
             <div className="orbit-visualization" data-aos="fade-up" data-aos-delay="400">
               <div className="visualization-container">
-                <CometOrbitScene orbitParams={activeComet?.elements} />
+                {/* ❗️ Передаем параметры или null. Сцена сама решит, что рендерить */}
+                <CometOrbitScene orbitToDisplay={activeOrbitData ? activeOrbitData.params : null} />
               </div>
               <div className="orbit-info">
-                <div className="comet-selector-container">
-                  {isLoading ? (
-                    <p>Загрузка списка комет...</p>
-                  ) : (
-                    <CometSelector comets={allComets} onSelectComet={handleSelectComet} />
-                  )}
-                </div>
-                {activeComet ? (
-                  <ResultsDisplay
-                    orbitParams={activeComet.elements}
-                    closeApproach={activeComet.close_approach}
-                    observations={activeComet.observations}
-                  />
-                ) : (
-                  !isLoading && (
-                    <div className="calculation-info">
-                      <p>🌟 Нет комет для отображения. Рассчитайте новую!</p>
-                      <button className="btn-primary" onClick={scrollToObservations} style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}>
-                        Перейти к вводу данных
-                      </button>
+                {/* ❗️ Информация отображается только если есть активная орбита */}
+                {activeOrbitData ? (
+                  <>
+                    <div className="info-grid">
+                      <div className="info-item">
+                        <span className="info-label">Большая полуось (a):</span>
+                        <span className="info-value">{activeOrbitData.params.semimajor_axis.toFixed(3)} а.е.</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Эксцентриситет (e):</span>
+                        <span className="info-value">{activeOrbitData.params.eccentricity.toFixed(3)}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Наклонение (i):</span>
+                        <span className="info-value">{activeOrbitData.params.inclination.toFixed(2)}°</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Долгота восх. узла (Ω):</span>
+                        <span className="info-value">{activeOrbitData.params.ra_of_node.toFixed(2)}°</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Аргумент перицентра (ω):</span>
+                        <span className="info-value">{activeOrbitData.params.arg_of_pericenter.toFixed(2)}°</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Период обращения:</span>
+                        <span className="info-value">{activeOrbitData.params.period.toFixed(0)} дней</span>
+                      </div>
                     </div>
-                  )
+                    <div className="calculation-info">
+                      <p>
+                        {activeOrbitData.source === 'calculated'
+                          ? `✅ Орбита рассчитана по ${activeOrbitData.observations.length} наблюдениям`
+                          : `📄 Данные загружены с сервера для кометы "${activeOrbitData.name}"`}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="calculation-info">
+                    <p>🌟 Нет выбранной орбиты</p>
+                    <p className="timestamp">
+                      Рассчитайте новую орбиту, введя данные наблюдений, или выберите комету из базы данных.
+                    </p>
+                    <button
+                      className="btn-primary"
+                      onClick={scrollToObservations}
+                      style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}
+                    >
+                      Перейти к вводу данных
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
