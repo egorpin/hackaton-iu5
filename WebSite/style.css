@@ -469,15 +469,31 @@ header .container .content .extra-nav button:hover .icon {
 
 .observation-item {
   background: rgba(255, 255, 255, 0.05);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
   border-left: 4px solid #ffd700;
+  transition: all 0.3s ease;
+}
+
+.observation-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .observation-item div {
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
+}
+
+.observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .btn-danger {
@@ -1304,5 +1320,161 @@ footer p {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+}
+
+.coord-input-single {
+  position: relative;
+}
+
+.coord-input {
+  width: 100%;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: var(--white);
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s ease;
+}
+
+.coord-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.coord-input::placeholder {
+  color: var(--lightgray);
+  opacity: 0.7;
+}
+
+.coord-example {
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.observation-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
+}
+
+.observation-coords div {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.observations-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.observation-time {
+  font-size: 0.95rem;
+  color: var(--white);
+}
+
+/* Адаптивность для координат */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .observation-coords {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .coord-input {
+    font-size: 0.9rem;
+    padding: 0.875rem;
+  }
+}
+
+/* Стили для большой кликабельной рамки загрузки фото */
+.photo-upload-area {
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.photo-upload-area:hover {
+  border-color: var(--primary);
+  background: rgba(130, 200, 229, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(130, 200, 229, 0.1);
+}
+
+.photo-upload-area:active {
+  transform: translateY(0);
+}
+
+.photo-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.photo-upload-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--primary);
+}
+
+.photo-upload-text {
+  text-align: center;
+}
+
+.photo-upload-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.photo-upload-subtitle {
+  font-size: 0.95rem;
+  color: var(--lightgray);
+}
+
+.photo-upload-hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+
+/* Адаптивность для большой рамки */
+@media (max-width: 768px) {
+  .photo-upload-area {
+    padding: 2rem 1rem;
+    min-height: 150px;
+  }
+
+  .photo-upload-title {
+    font-size: 1.1rem;
+  }
+
+  .photo-upload-subtitle {
+    font-size: 0.9rem;
   }
 }
