@@ -64,7 +64,7 @@ function App() {
           <div className="content">
             <div data-aos="fade-down-right" data-aos-delay="300" className="logo">
               <img src="/assets/saturn.png" alt="logo" />
-              <a href="#">NOVASPACE</a>
+              <a href="#">404: logic not found</a>
             </div>
 
             <div className="extra-nav">
@@ -218,7 +218,7 @@ function App() {
       </section>
 
       <footer>
-        <p>Novaspace Orbit Determinator • Система определения орбит небесных тел</p>
+        <p>404: logic not found - Orbit Determinator • Система определения орбит небесных тел</p>
       </footer>
     </>
   );
