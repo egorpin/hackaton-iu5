@@ -74,21 +74,12 @@ class ObservationSerializer(serializers.ModelSerializer):
 
         return data
 
-    def _clean_validated_data(self, validated_data):
-        """Helper function to remove temporary input fields."""
-        for k in COORD_INPUT_FIELDS:
-            # Pop the temporary field if it exists
-            validated_data.pop(k, None)
-        return validated_data
-
     def create(self, validated_data):
         # ❗️ FIX: Clean data before creation
-        validated_data = self._clean_validated_data(validated_data)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         # ❗️ FIX: Clean data before update
-        validated_data = self._clean_validated_data(validated_data)
         return super().update(instance, validated_data)
 
 # --- Основные сериализаторы ---
@@ -125,10 +116,17 @@ class CometCreateSerializer(serializers.ModelSerializer):
         model = Comet
         fields = ('name', 'observations')
 
+    def _clean_validated_data(self, validated_data):
+        """Helper function to remove temporary input fields."""
+        for k in COORD_INPUT_FIELDS:
+            # Pop the temporary field if it exists
+            validated_data.pop(k, None)
+        return validated_data
+
     def create(self, validated_data):
         observations_data = validated_data.pop('observations')
         comet = Comet.objects.create(**validated_data)
         for obs_data in observations_data:
             # Привязываем каждое наблюдение к созданной комете
-            Observation.objects.create(comet=comet, **obs_data)
+            Observation.objects.create(comet=comet, **self._clean_validated_data(obs_data))
         return comet
