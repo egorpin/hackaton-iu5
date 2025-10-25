@@ -1,9 +1,18 @@
 from django.contrib import admin
+from django.utils.html import format_html # Для форматирования вывода HTML
 from .models import Comet, Observation, OrbitalElements, CloseApproach
 
 # ----------------------------------------------------------------------
 # Вспомогательные классы для отображения вложенных данных (Inlines)
 # ----------------------------------------------------------------------
+
+class CloseApproachInline(admin.TabularInline):
+    """Отображает прогноз сближения внутри страницы элементов орбиты."""
+    model = CloseApproach
+    can_delete = False
+    max_num = 1 # У орбиты может быть только один лучший прогноз
+    fields = ('approach_date', 'min_distance_au')
+    verbose_name = "Прогноз Сближения с Землей"
 
 class ObservationInline(admin.TabularInline):
     """Отображает наблюдения внутри страницы кометы."""
@@ -40,41 +49,41 @@ class ObservationInline(admin.TabularInline):
         return "N/A"
 
 class OrbitalElementsInline(admin.StackedInline):
-    """Отображает элементы орбиты внутри страницы кометы."""
+    """Отображает элементы орбиты и прогноз сближения внутри страницы кометы."""
     model = OrbitalElements
     can_delete = False
     verbose_name = "Рассчитанные Элементы Орбиты"
 
-    # ❗️ НОВОЕ: Исключите 'calculation_date' из полей, которые будут в форме.
-    # Если вы используете 'fieldsets', нужно убедиться, что оно там отображается как 'readonly'.
-    # В inlines удобнее использовать 'exclude' И 'readonly_fields'.
+    # readonly_fields и fieldsets остаются, как в последней рабочей версии:
+    readonly_fields = ('calculation_date', 'approach_display')
 
-    exclude = ('calculation_date',) # Исключаем его из редактируемых полей формы
-
-    # Поля для отображения
     fieldsets = (
         (None, {
             'fields': (('semimajor_axis', 'eccentricity'),
                        ('inclination', 'ra_of_node', 'arg_of_pericenter'),
-                       'time_of_pericenter'),
+                       'time_of_pericenter',
+                       'approach_display'),
         }),
         ('Метаданные расчета', {
-            'fields': ('calculation_date', 'rms_error'), # Здесь оно для отображения
+            'fields': ('calculation_date', 'rms_error'),
             'classes': ('collapse',),
         })
     )
 
-    # ❗️ НОВОЕ: Добавляем 'calculation_date' в список полей только для чтения.
-    # Это позволяет fieldsets отображать его.
-    readonly_fields = ('calculation_date',)
+    @admin.display(description='Прогноз Сближения с Землей')
+    def approach_display(self, obj):
+        """Извлекает и форматирует данные о сближении для отображения."""
+        try:
+            # ❗️ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Используем прямой атрибут OneToOneField
+            # Имя атрибута: obj.<related_name>
+            approach = obj.approach_prediction
 
-class CloseApproachInline(admin.TabularInline):
-    """Отображает прогноз сближения внутри страницы элементов орбиты."""
-    model = CloseApproach
-    can_delete = False
-    max_num = 1
-    fields = ('approach_date', 'min_distance_au')
-    verbose_name = "Прогноз Сближения с Землей"
+            return format_html(
+                f"**Дата:** <b>{approach.approach_date.strftime('%Y-%m-%d %H:%M UTC')}</b><br>"
+                f"**Дистанция:** <b>{approach.min_distance_au:.4f} а.е.</b>"
+            )
+        except CloseApproach.DoesNotExist:
+            return format_html("<span style='color: red;'>Нет прогноза сближения</span>")
 
 
 # ----------------------------------------------------------------------
