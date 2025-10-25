@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+// 1 а.е. в километрах
+const AU_IN_KM = 149597870.7;
+
 export default function ResultsDisplay({ orbitParams, closeApproach, observations }) {
   // Эта проверка остается, она важна
   if (!orbitParams) {
@@ -59,30 +62,29 @@ export default function ResultsDisplay({ orbitParams, closeApproach, observation
             <div className="param-item">
               <div className="param-label">Дата сближения</div>
               <div className="param-value">
-                {new Date(closeApproach.time).toLocaleDateString('ru-RU')}
+                {/* ИСПРАВЛЕНИЕ 1: .time -> .approach_date */}
+                {new Date(closeApproach.approach_date).toLocaleDateString('ru-RU')}
               </div>
             </div>
 
             <div className="param-item">
               <div className="param-label">Расстояние (а.е.)</div>
               <div className="param-value">
-                {closeApproach.distance_au.toFixed(3)} а.е.
+                {/* ИСПРАВЛЕНИЕ 2: .distance_au -> .min_distance_au */}
+                {closeApproach.min_distance_au?.toFixed(3) ?? 'N/A'} а.е.
               </div>
             </div>
 
             <div className="param-item">
               <div className="param-label">Расстояние (км)</div>
               <div className="param-value">
-                {closeApproach.distance_km.toLocaleString('ru-RU')} км
+                {/* ИСПРАВЛЕНИЕ 3: Рассчитываем .distance_km, т.к. его нет в API */}
+                {(closeApproach.min_distance_au * AU_IN_KM).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} км
               </div>
             </div>
 
-            <div className="param-item">
-              <div className="param-label">Скорость (км/с)</div>
-              <div className="param-value">
-                {closeApproach.relative_velocity.toFixed(1)} км/с
-              </div>
-            </div>
+            {/* ИСПРАВЛЕНИЕ 4: Блок 'relative_velocity' удален, так как его нет в API */}
+
           </div>
         </div>
       )}
