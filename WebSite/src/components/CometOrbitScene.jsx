@@ -87,11 +87,11 @@ const Comet = ({ orbitParams }) => {
         const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
 
         return { a, e, meanMotion, transformMatrix };
-    }, [orbitParams]); // ИСПРАВЛЕНО: Добавлены недостающие `)` и массив зависимостей
+    }, [orbitParams]);
 
     useFrame(({ clock }) => {
         if (!cometRef.current || !animationParams) return;
-        const timeYears = clock.getElapsedTime() / 15; // Замедлил анимацию для наглядности
+        const timeYears = clock.getElapsedTime() / 15;
         const M = animationParams.meanMotion * timeYears;
         const E = solveKepler(M, animationParams.e);
 
@@ -115,40 +115,7 @@ const Comet = ({ orbitParams }) => {
             </mesh>
         </group>
     );
-
-    return { a, e, meanMotion, transformMatrix };
-  }, [orbitParams]);
-
-  useFrame(({ clock }) => {
-    if (!cometRef.current || !animationParams) return;
-
-    // Замедлим анимацию, чтобы было нагляднее
-    const timeYears = clock.getElapsedTime() / 20;
-    const M = animationParams.meanMotion * timeYears;
-    const E = solveKepler(M, animationParams.e);
-
-    const x = animationParams.a * (Math.cos(E) - animationParams.e);
-    const y = animationParams.a * Math.sqrt(1 - animationParams.e * animationParams.e) * Math.sin(E);
-
-    const newPos = new THREE.Vector3(x, y, 0).applyMatrix4(animationParams.transformMatrix);
-    cometRef.current.position.copy(newPos);
-  });
-
-  if (!orbitParams) return null;
-
-  return (
-    <group ref={cometRef}>
-      <Sphere args={[0.08, 16, 16]}>
-        <meshBasicMaterial color="#FF6B6B" />
-      </Sphere>
-      <mesh rotation={[0, Math.PI / 2, 0]} position={[0.2, 0, 0]}>
-        <coneGeometry args={[0.04, 0.5, 12]} />
-        <meshBasicMaterial color="#4ECDC4" transparent opacity={0.7} />
-      </mesh>
-    </group>
-  );
 };
-
 
 // Компонент для Планет
 const Planet = ({ planetInfo }) => {
@@ -216,9 +183,12 @@ const Sun = () => (
 );
 
 // --- Основной компонент сцены ---
-export default function CometOrbitScene({ orbitParams }) { // ИСПРАВЛЕНО: Принимаем orbitParams
+export default function CometOrbitScene({ orbitParams }) {
+  const hasCometData = orbitParams &&
+    orbitParams.semiMajorAxis &&
+    orbitParams.eccentricity !== undefined;
+
   return (
-    // ИСПРАВЛЕНО: Убран черный фон, чтобы не было "черного экрана"
     <div style={{ width: '100%', height: '100%' }}>
       <Canvas camera={{ position: [0, 15, 15], fov: 45, near: 0.1, far: 5000 }}>
         <ambientLight intensity={0.2} />
