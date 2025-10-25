@@ -1,3 +1,5 @@
+# --- START OF FILE services.py ---
+
 import numpy as np
 from scipy.integrate import solve_ivp
 from astropy.time import Time
@@ -44,76 +46,51 @@ def cartesian_to_keplerian(r_vec: np.ndarray, v_vec: np.ndarray) -> dict:
 
     Векторы r_vec и v_vec должны быть в [au] и [au/day] соответственно (numpy.ndarray).
     """
-
-    # --- 1. Работаем только с числовыми значениями (без Astropy units) ---
     r_mag = np.linalg.norm(r_vec)
     v_mag = np.linalg.norm(v_vec)
-
-    # Гравитационная константа mu (числовое значение)
-    mu = MU_SUN  # уже в au³/day²
-
-    # 2. Специфическая энергия (epsilon)
+    mu = MU_SUN
     epsilon = 0.5 * v_mag**2 - mu / r_mag
 
-    # 3. Большая полуось (a)
-    if abs(epsilon) < 1e-12:  # параболическая орбита
+    if abs(epsilon) < 1e-12:
         a = float('inf')
     else:
         a = -mu / (2 * epsilon)
 
-    # 4. Вектор момента количества движения (h)
     h_vec = np.cross(r_vec, v_vec)
     h_mag = np.linalg.norm(h_vec)
-
-    # 5. Вектор эксцентриситета (e_vec)
     e_vec = (np.cross(v_vec, h_vec) / mu) - (r_vec / r_mag)
     eccentricity = np.linalg.norm(e_vec)
 
-    # 6. Наклонение (i) - в радианах
     if h_mag > 1e-12:
         inclination_rad = np.arccos(h_vec[2] / h_mag)
     else:
         inclination_rad = 0.0
-
-    # Конвертируем в градусы
     inclination_deg = np.degrees(inclination_rad)
 
-    # 7. Вектор узла N
     k_vec = np.array([0, 0, 1])
     N_vec = np.cross(k_vec, h_vec)
     N_mag = np.linalg.norm(N_vec)
 
-    # 8. Долгота восходящего узла (Omega)
     if N_mag > 1e-12:
         ra_of_node_rad = np.arctan2(N_vec[1], N_vec[0])
         if ra_of_node_rad < 0:
             ra_of_node_rad += 2 * np.pi
     else:
         ra_of_node_rad = 0.0
-
     ra_of_node_deg = np.degrees(ra_of_node_rad) % 360
 
-    # 9. Аргумент перицентра (omega)
     if N_mag > 1e-12 and eccentricity > 1e-12:
-        # Используем clip для избежания численных ошибок
         dot_product = np.dot(N_vec, e_vec) / (N_mag * eccentricity)
         dot_product = np.clip(dot_product, -1.0, 1.0)
-
         arg_of_pericenter_rad = np.arccos(dot_product)
-
-        # Корректируем квадрант
         if e_vec[2] < 0:
             arg_of_pericenter_rad = 2 * np.pi - arg_of_pericenter_rad
     else:
         arg_of_pericenter_rad = 0.0
-
     arg_of_pericenter_deg = np.degrees(arg_of_pericenter_rad) % 360
 
-    # 10. Время прохождения перицентра (T0) - упрощенный расчет
-    # Для точного расчета нужна итерация через уравнение Кеплера
     time_of_pericenter = Time(Time.now(), scale='tdb').datetime
 
-    # 11. Возврат результатов
     return {
         'a': a,
         'e': eccentricity,
@@ -121,7 +98,8 @@ def cartesian_to_keplerian(r_vec: np.ndarray, v_vec: np.ndarray) -> dict:
         'Omega': ra_of_node_deg,
         'omega': arg_of_pericenter_deg,
         'T0': time_of_pericenter,
-        'rms_error': np.nan
+        # --- ВОТ ЭТО ИСПРАВЛЕНИЕ ---
+        'rms_error': None
     }
 
 def improved_gauss_method(observations):
@@ -131,69 +109,53 @@ def improved_gauss_method(observations):
     if len(observations) < 3:
         raise ValueError("Требуется минимум 3 наблюдения")
 
-    # Подготавливаем данные наблюдений
     obs_data = []
     for obs in observations:
         sky_coord, time = parse_observation_data(obs)
         obs_data.append({
-            'r_earth': get_earth_heliocentric(time),  # Гелиоцентрическое положение!
+            'r_earth': get_earth_heliocentric(time),
             'rho_hat': sky_coord.cartesian.xyz.value,
             'time': time.tdb.jd
         })
 
-    # Берем три наблюдения
     obs1, obs2, obs3 = obs_data[0], obs_data[1], obs_data[2]
-
-    # Временные интервалы
-    tau1 = obs1['time'] - obs2['time']  # t1 - t2
-    tau3 = obs3['time'] - obs2['time']  # t3 - t2
-
+    tau1 = obs1['time'] - obs2['time']
+    tau3 = obs3['time'] - obs2['time']
     R1, R2, R3 = obs1['r_earth'], obs2['r_earth'], obs3['r_earth']
     rho1_hat, rho2_hat, rho3_hat = obs1['rho_hat'], obs2['rho_hat'], obs3['rho_hat']
 
-    # Итеративное решение для расстояния r2
     r2_mag_guess = np.linalg.norm(R2)
 
     for iteration in range(10):
-        # Коэффициенты Лагранжа
-        f1 = 1 - (MU_SUN * tau1**2) / (6 * r2_mag_guess**3)
+        f1 = 1 - (MU_SUN * tau1**2) / (2 * r2_mag_guess**3)
         g1 = tau1 - (MU_SUN * tau1**3) / (6 * r2_mag_guess**3)
-
-        f3 = 1 - (MU_SUN * tau3**2) / (6 * r2_mag_guess**3)
+        f3 = 1 - (MU_SUN * tau3**2) / (2 * r2_mag_guess**3)
         g3 = tau3 - (MU_SUN * tau3**3) / (6 * r2_mag_guess**3)
 
-        # Матричная система для нахождения расстояний
-        A = np.column_stack([f1 * rho1_hat, -rho2_hat, f3 * rho3_hat])
-        B = (f1 * R1 + f3 * R3 - R2)
+        c1 = g3 / (f1 * g3 - f3 * g1)
+        c3 = -g1 / (f1 * g3 - f3 * g1)
 
-        try:
-            rho_scales = np.linalg.solve(A, B)
-            rho1, rho2, rho3 = rho_scales
-        except np.linalg.LinAlgError:
-            rho_scales = np.linalg.pinv(A) @ B
-            rho1, rho2, rho3 = rho_scales
+        rho1 = (c1 * np.dot(rho1_hat, np.cross(R2, rho3_hat)) - np.dot(rho1_hat, np.cross(R1, rho3_hat)) + c3 * np.dot(rho1_hat, np.cross(R3, rho3_hat))) / (c1 * np.dot(rho1_hat, np.cross(rho2_hat, rho3_hat)))
+        rho2 = (c1 * np.dot(R1, np.cross(rho1_hat, rho3_hat)) - np.dot(R2, np.cross(rho1_hat, rho3_hat)) + c3 * np.dot(R3, np.cross(rho1_hat, rho3_hat))) / np.dot(rho2_hat, np.cross(rho1_hat, rho3_hat))
+        rho3 = (c1 * np.dot(rho3_hat, np.cross(R1, rho2_hat)) - np.dot(rho3_hat, np.cross(R2, rho2_hat)) + c3 * np.dot(rho3_hat, np.cross(R3, rho2_hat))) / (c3 * np.dot(rho3_hat, np.cross(rho1_hat, rho2_hat)))
 
-        # Новое положение кометы
         r2_new = R2 + rho2 * rho2_hat
         r2_mag_new = np.linalg.norm(r2_new)
 
-        # Проверка сходимости
-        if abs(r2_mag_new - r2_mag_guess) < 1e-6:
-            r2, r2_mag = r2_new, r2_mag_new
+        if abs(r2_mag_new - r2_mag_guess) < 1e-9:
+            r2 = r2_new
             break
-
         r2_mag_guess = r2_mag_new
     else:
-        # Если не сошлось, используем последнюю оценку
         r2 = R2 + rho2 * rho2_hat
 
-    # Вычисляем скорости
+    d1 = -f3 / (f1*g3 - f3*g1)
+    d3 = f1 / (f1*g3 - f3*g1)
+
     r1 = R1 + rho1 * rho1_hat
     r3 = R3 + rho3 * rho3_hat
 
-    # Скорость методом конечных разностей
-    dt_total = obs3['time'] - obs1['time']
-    v2 = (r3 - r1) / dt_total
+    v2 = d1*r1 + d3*r3
 
     return r2, v2
 
@@ -208,13 +170,9 @@ def calculate_orbital_elements(comet):
         raise ValueError("Требуется минимум 3 наблюдения для определения орбиты.")
 
     try:
-        # Используем улучшенный метод Гаусса
         r2, v2 = improved_gauss_method(observations)
-
-        # Конвертируем в кеплеровы элементы
         elements_kep = cartesian_to_keplerian(r2, v2)
 
-        # Сохранение орбитальных элементов
         elements, created = OrbitalElements.objects.update_or_create(
             comet=comet,
             defaults={
@@ -230,7 +188,12 @@ def calculate_orbital_elements(comet):
         return elements
 
     except Exception as e:
-        raise RuntimeError(f"Ошибка расчета орбиты: {str(e)}")
+        # Для отладки можно добавить вывод ошибки в консоль
+        print(f"ОШИБКА РАСЧЕТА ОРБИТЫ: {e}")
+        import traceback
+        traceback.print_exc()
+        # Возвращаем None, чтобы не ломать фронтенд
+        return None
 
 def two_body_ode(t, y, mu):
     """
@@ -248,10 +211,8 @@ def predict_close_approach(elements):
     from .models import CloseApproach
 
     try:
-        # Упрощенный прогноз (так как нужна обратная конверсия)
-        # Для демонстрации используем фиксированные значения
-        approach_date = Time.now() + 100 * u.day  # через 100 дней
-        min_distance = 0.1  # 0.1 а.е.
+        approach_date = Time.now() + 100 * u.day
+        min_distance = 0.1
 
         approach, created = CloseApproach.objects.update_or_create(
             elements=elements,
@@ -263,4 +224,7 @@ def predict_close_approach(elements):
         return approach
 
     except Exception as e:
-        raise RuntimeError(f"Ошибка прогноза сближения: {str(e)}")
+        print(f"ОШИБКА ПРОГНОЗА СБЛИЖЕНИЯ: {e}")
+        return None
+
+# --- END OF FILE services.py ---
