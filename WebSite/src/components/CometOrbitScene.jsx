@@ -4,7 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 
-// --- ДАННЫЕ О ПЛАНЕТАХ (первые 5) ---
+// --- ДАННЫЕ О ПЛАНЕТАХ ---
 const planetData = [
   { name: 'Mercury', a: 0.3871, e: 0.2056, i: 7.005, a_node: 48.331, a_peri: 29.124, M_epoch: 174.795, size: 0.38, color: '#9f9f9f' },
   { name: 'Venus', a: 0.7233, e: 0.0068, i: 3.395, a_node: 76.680, a_peri: 54.884, M_epoch: 50.416, size: 0.95, color: '#d8a050' },
@@ -13,19 +13,7 @@ const planetData = [
   { name: 'Jupiter', a: 5.2034, e: 0.0484, i: 1.305, a_node: 100.556, a_peri: 274.256, M_epoch: 19.668, size: 11.2, color: '#c8a379' },
 ];
 
-// --- НОВЫЕ ДАННЫЕ ДЛЯ ДЕМО-КОМЕТЫ (уникальная орбита) ---
-const sampleCometData = {
-    elements: {
-        semimajor_axis: 3.5,     // Большая полуось (а.е.) - орбита больше, чем у Марса
-        eccentricity: 0.65,      // Эксцентриситет - орбита сильно вытянутая
-        inclination: 20.0,       // Наклонение - орбита под заметным углом
-        ra_of_node: 100.0,       // Долгота восходящего узла
-        arg_of_pericenter: 150.0,// Аргумент перицентра
-    }
-};
-
-// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (без изменений) ---
-
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function solveKepler(M, e) {
   let E = M;
   const tolerance = 1e-6;
@@ -46,10 +34,11 @@ function calculateOrbitPoints(semiMajorAxis, eccentricity, inclination, longitud
   const omegaRad = THREE.MathUtils.degToRad(longitudeOfAscNode);
   const wRad = THREE.MathUtils.degToRad(argOfPeriapsis);
 
-  const transformMatrix = new THREE.Matrix4().multiplyMatrices(
-    new THREE.Matrix4().makeRotationZ(omegaRad),
-    new THREE.Matrix4().makeRotationZ(wRad).premultiply(new THREE.Matrix4().makeRotationX(iRad))
-  );
+  const rotZ_omega = new THREE.Matrix4().makeRotationZ(omegaRad);
+  const rotX_i = new THREE.Matrix4().makeRotationX(iRad);
+  const rotZ_w = new THREE.Matrix4().makeRotationZ(wRad);
+  
+  const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
 
   for (let i = 0; i <= pointsCount; i++) {
     const trueAnomaly = (i / pointsCount) * 2 * Math.PI;
@@ -61,85 +50,76 @@ function calculateOrbitPoints(semiMajorAxis, eccentricity, inclination, longitud
   return points;
 }
 
-
 // --- КОМПОНЕНТЫ СЦЕНЫ ---
-
-// Компонент Орбиты (траектории)
 const CelestialOrbit = ({ elements, color = "#FFD700", opacity = 0.4 }) => {
-  const points = useMemo(() => calculateOrbitPoints(
-    elements.semimajor_axis,
-    elements.eccentricity,
-    elements.inclination,
-    elements.ra_of_node,
-    elements.arg_of_pericenter
-  ), [elements]);
+    if (!elements) return null;
+    const points = useMemo(() => calculateOrbitPoints(
+        elements.semiMajorAxis,
+        elements.eccentricity,
+        elements.inclination,
+        elements.longitudeOfAscNode,
+        elements.argOfPeriapsis
+    ), [elements]);
 
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-
-  return (
-    <line geometry={lineGeometry}>
-      <lineBasicMaterial attach="material" color={color} linewidth={1} transparent opacity={opacity} />
-    </line>
-  );
-};
-
-// Компонент Кометы
-const Comet = ({ orbitParams }) => {
-  const cometRef = useRef();
-
-  const animationParams = useMemo(() => {
-    if (!orbitParams) return null;
-    const a = orbitParams.semimajor_axis;
-    const e = orbitParams.eccentricity;
-    const periodYears = Math.sqrt(a * a * a);
-    const meanMotion = (2 * Math.PI) / periodYears;
-
-    const iRad = THREE.MathUtils.degToRad(orbitParams.inclination);
-    const omegaRad = THREE.MathUtils.degToRad(orbitParams.ra_of_node);
-    const wRad = THREE.MathUtils.degToRad(orbitParams.arg_of_pericenter);
-
-    const transformMatrix = new THREE.Matrix4().multiplyMatrices(
-      new THREE.Matrix4().makeRotationZ(omegaRad),
-      new THREE.Matrix4().makeRotationZ(wRad).premultiply(new THREE.Matrix4().makeRotationX(iRad))
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    return (
+        <line geometry={lineGeometry}>
+            <lineBasicMaterial attach="material" color={color} linewidth={1} transparent opacity={opacity} />
+        </line>
     );
-
-    return { a, e, meanMotion, transformMatrix };
-  }, [orbitParams]);
-
-  useFrame(({ clock }) => {
-    if (!cometRef.current || !animationParams) return;
-
-    const timeYears = clock.getElapsedTime() / 5;
-    const M = animationParams.meanMotion * timeYears;
-    const E = solveKepler(M, animationParams.e);
-
-    const x = animationParams.a * (Math.cos(E) - animationParams.e);
-    const y = animationParams.a * Math.sqrt(1 - animationParams.e * animationParams.e) * Math.sin(E);
-
-    const newPos = new THREE.Vector3(x, y, 0).applyMatrix4(animationParams.transformMatrix);
-    cometRef.current.position.copy(newPos);
-  });
-
-  if (!orbitParams) return null;
-
-  // Уменьшенная модель кометы
-  return (
-    <group ref={cometRef}>
-      <Sphere args={[0.05, 16, 16]}> {/* Уменьшенная голова */}
-        <meshBasicMaterial color="#FF6B6B" />
-      </Sphere>
-      <mesh rotation={[0, Math.PI / 2, 0]} position={[0.2, 0, 0]}> {/* Уменьшенный хвост */}
-        <coneGeometry args={[0.03, 0.4, 12]} />
-        <meshBasicMaterial color="#4ECDC4" transparent opacity={0.7} />
-      </mesh>
-    </group>
-  );
 };
 
-// Компонент для Планет
+const Comet = ({ orbitParams }) => {
+    const cometRef = useRef();
+    const animationParams = useMemo(() => {
+        if (!orbitParams) return null;
+        const a = orbitParams.semiMajorAxis;
+        const e = orbitParams.eccentricity;
+        const periodYears = Math.sqrt(a * a * a);
+        const meanMotion = (2 * Math.PI) / periodYears;
+
+        const iRad = THREE.MathUtils.degToRad(orbitParams.inclination);
+        const omegaRad = THREE.MathUtils.degToRad(orbitParams.longitudeOfAscNode);
+        const wRad = THREE.MathUtils.degToRad(orbitParams.argOfPeriapsis);
+
+        const rotZ_omega = new THREE.Matrix4().makeRotationZ(omegaRad);
+        const rotX_i = new THREE.Matrix4().makeRotationX(iRad);
+        const rotZ_w = new THREE.Matrix4().makeRotationZ(wRad);
+        const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
+
+        return { a, e, meanMotion, transformMatrix };
+    }, [orbitParams]); // ИСПРАВЛЕНО: Добавлены недостающие `)` и массив зависимостей
+
+    useFrame(({ clock }) => {
+        if (!cometRef.current || !animationParams) return;
+        const timeYears = clock.getElapsedTime() / 15; // Замедлил анимацию для наглядности
+        const M = animationParams.meanMotion * timeYears;
+        const E = solveKepler(M, animationParams.e);
+
+        const x = animationParams.a * (Math.cos(E) - animationParams.e);
+        const y = animationParams.a * Math.sqrt(1 - animationParams.e * animationParams.e) * Math.sin(E);
+
+        const newPos = new THREE.Vector3(x, y, 0).applyMatrix4(animationParams.transformMatrix);
+        cometRef.current.position.copy(newPos);
+    });
+
+    if (!orbitParams) return null;
+
+    return (
+        <group ref={cometRef}>
+            <Sphere args={[0.05, 16, 16]}>
+                <meshBasicMaterial color="#FF6B6B" />
+            </Sphere>
+            <mesh rotation={[0, Math.PI / 2, 0]} position={[0.2, 0, 0]}>
+                <coneGeometry args={[0.03, 0.4, 12]} />
+                <meshBasicMaterial color="#4ECDC4" transparent opacity={0.7} />
+            </mesh>
+        </group>
+    );
+};
+
 const Planet = ({ planetInfo }) => {
     const planetRef = useRef();
-
     const animationParams = useMemo(() => {
         const a = planetInfo.a;
         const e = planetInfo.e;
@@ -151,18 +131,17 @@ const Planet = ({ planetInfo }) => {
         const omegaRad = THREE.MathUtils.degToRad(planetInfo.a_node);
         const wRad = THREE.MathUtils.degToRad(planetInfo.a_peri);
 
-        const transformMatrix = new THREE.Matrix4().multiplyMatrices(
-            new THREE.Matrix4().makeRotationZ(omegaRad),
-            new THREE.Matrix4().makeRotationZ(wRad).premultiply(new THREE.Matrix4().makeRotationX(iRad))
-        );
+        const rotZ_omega = new THREE.Matrix4().makeRotationZ(omegaRad);
+        const rotX_i = new THREE.Matrix4().makeRotationX(iRad);
+        const rotZ_w = new THREE.Matrix4().makeRotationZ(wRad);
+        const transformMatrix = new THREE.Matrix4().multiply(rotZ_omega).multiply(rotX_i).multiply(rotZ_w);
 
         return { a, e, meanMotion, meanAnomalyEpochRad, transformMatrix };
     }, [planetInfo]);
 
     useFrame(({ clock }) => {
         if (!planetRef.current || !animationParams) return;
-
-        const timeYears = clock.getElapsedTime() / 5;
+        const timeYears = clock.getElapsedTime() / 15;
         const M = animationParams.meanAnomalyEpochRad + animationParams.meanMotion * timeYears;
         const E = solveKepler(M, animationParams.e);
 
@@ -175,11 +154,10 @@ const Planet = ({ planetInfo }) => {
     });
 
     const orbitElements = {
-        semimajor_axis: planetInfo.a, eccentricity: planetInfo.e,
-        inclination: planetInfo.i, ra_of_node: planetInfo.a_node,
-        arg_of_pericenter: planetInfo.a_peri,
+        semiMajorAxis: planetInfo.a, eccentricity: planetInfo.e,
+        inclination: planetInfo.i, longitudeOfAscNode: planetInfo.a_node,
+        argOfPeriapsis: planetInfo.a_peri,
     };
-
     const visualRadius = planetInfo.size * 0.05;
 
     return (
@@ -194,32 +172,29 @@ const Planet = ({ planetInfo }) => {
     );
 }
 
-// Компонент Солнца
-const Sun = () => {
-  return (
+const Sun = () => (
     <group>
-      <Sphere args={[0.3, 32, 32]}>
-        <meshBasicMaterial color="#FFD700" />
-      </Sphere>
-      <pointLight position={[0, 0, 0]} intensity={300} distance={1000} color="#FFD700" />
+        <Sphere args={[0.3, 32, 32]}>
+            <meshBasicMaterial color="#FFD700" />
+        </Sphere>
+        <pointLight position={[0, 0, 0]} intensity={300} distance={1000} color="#FFD700" />
     </group>
-  );
-};
+);
 
 // --- Основной компонент сцены ---
-export default function CometOrbitScene() {
+export default function CometOrbitScene({ orbitParams }) { // ИСПРАВЛЕНО: Принимаем orbitParams
   return (
-    <div style={{ width: '100%', height: '100%', background: 'black' }}>
+    // ИСПРАВЛЕНО: Убран черный фон, чтобы не было "черного экрана"
+    <div style={{ width: '100%', height: '100%' }}> 
       <Canvas camera={{ position: [0, 15, 15], fov: 45, near: 0.1, far: 5000 }}>
         <ambientLight intensity={0.2} />
         <Sun />
-
         <Stars radius={200} depth={50} count={5000} factor={6} saturation={0} fade speed={0.5} />
-
         {planetData.map(planet => <Planet key={planet.name} planetInfo={planet} />)}
 
-        <CelestialOrbit elements={sampleCometData.elements} color="#4ECDC4" opacity={0.7} />
-        <Comet orbitParams={sampleCometData.elements} />
+        {/* ИСПРАВЛЕНО: Отображаем переданную орбиту */}
+        <CelestialOrbit elements={orbitParams} color="#4ECDC4" opacity={0.7} />
+        <Comet orbitParams={orbitParams} />
 
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={2} maxDistance={50} />
       </Canvas>

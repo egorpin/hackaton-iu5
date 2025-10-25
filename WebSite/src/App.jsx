@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import React, { useState, useEffect } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
 import ObservationForm from './components/ObservationForm';
@@ -6,7 +8,9 @@ import '../style.css';
 function App() {
   const [orbitParams, setOrbitParams] = useState(null);
   const [observations, setObservations] = useState([]);
-  const [showDefaultOrbit, setShowDefaultOrbit] = useState(true);
+  
+  // Состояние showDefaultOrbit больше не нужно, можно удалить
+  // const [showDefaultOrbit, setShowDefaultOrbit] = useState(true);
 
   useEffect(() => {
     if (window.AOS) {
@@ -39,7 +43,6 @@ function App() {
         } else {
           header.classList.remove("hidden");
         }
-
         lastScrollTop = scrollTop;
       });
     };
@@ -47,10 +50,10 @@ function App() {
     headerScript();
   }, []);
 
-  const handleOrbitCalculated = (params, obsm, cometId, cometName) => {
-    setOrbitParams({params, cometId: cometId, cometName: cometName});
+  // ИСПРАВЛЕНО: Функция теперь корректно сохраняет данные
+  const handleOrbitCalculated = (params, obs) => {
+    setOrbitParams(params); // Сохраняем сам объект с параметрами, а не вложенный
     setObservations(obs);
-    setShowDefaultOrbit(false);
   };
 
   const scrollToObservations = () => {
@@ -67,12 +70,12 @@ function App() {
 
   // Параметры по умолчанию для демонстрационной орбиты
   const defaultOrbitParams = {
-    semiMajorAxis: 10.5,
-    eccentricity: 0.85,
-    inclination: 45,
-    longitudeOfAscNode: 75,
-    argOfPeriapsis: 120,
-    period: 3500
+    semiMajorAxis: 3.5,
+    eccentricity: 0.65,
+    inclination: 20,
+    longitudeOfAscNode: 100,
+    argOfPeriapsis: 150,
+    period: 2300 // Примерное значение
   };
 
   return (
@@ -84,9 +87,7 @@ function App() {
               <img src="/assets/saturn.png" alt="logo" />
               <a href="#">404: logic not found</a>
             </div>
-
-            <div className="extra-nav">
-            </div>
+            <div className="extra-nav"></div>
           </div>
         </div>
       </header>
@@ -107,10 +108,10 @@ function App() {
                 по <span>астрометрическим наблюдениям</span>.
               </p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <a href="#" data-aos="fade-up" data-aos-delay="400" onClick={scrollToObservations}>
+                <a href="#observations-section" data-aos="fade-up" data-aos-delay="400" onClick={scrollToObservations}>
                   Начать наблюдения
                 </a>
-                <a href="#" data-aos="fade-up" data-aos-delay="500" onClick={scrollToVisualization}
+                <a href="#visualization-section" data-aos="fade-up" data-aos-delay="500" onClick={scrollToVisualization}
                    style={{ background: 'transparent', border: '2px solid var(--primary)' }}>
                   Посмотреть 3D модель
                 </a>
@@ -123,7 +124,8 @@ function App() {
 
       {/* Секция 2: Технологии с вращающейся Землей */}
       <section className="status">
-        <div className="container">
+        {/* ... (содержимое секции status без изменений) ... */}
+         <div className="container">
           <div className="content">
             <div className="title" data-aos="fade-down" data-aos-delay="400">
               <h2>ТЕХНОЛОГИИ РАСЧЕТА</h2>
@@ -215,7 +217,6 @@ function App() {
                 ее орбитальных параметров. Чем больше наблюдений - тем точнее расчет.
               </p>
             </div>
-
             <div className="reason">
               <div className="card" data-aos="fade-up" data-aos-delay="400" style={{ width: '100%', height: 'auto' }}>
                 <ObservationForm
@@ -228,7 +229,7 @@ function App() {
         </div>
       </section>
 
-      {/* Секция 4: 3D модель орбиты (всегда отображается) */}
+      {/* Секция 4: 3D модель орбиты */}
       <section id="visualization-section" className="visualization-3d">
         <div className="container">
           <div className="content">
@@ -237,12 +238,13 @@ function App() {
               <h1>Траектория движения кометы</h1>
               <p>
                 Интерактивная 3D модель {orbitParams ? 'рассчитанной' : 'демонстрационной'} орбиты кометы.
-                {orbitParams ? ` Параметры: a=${orbitParams.semiMajorAxis.toFixed(2)} а.е.` : ' Введите данные наблюдений для расчета реальной орбиты.'}
+                {orbitParams ? ` Большая полуось: a=${orbitParams.semiMajorAxis.toFixed(2)} а.е.` : ' Введите данные наблюдений для расчета реальной орбиты.'}
               </p>
             </div>
 
             <div className="orbit-visualization" data-aos="fade-up" data-aos-delay="400">
               <div className="visualization-container">
+                {/* ИСПРАВЛЕНО: Передаем рассчитанные параметры ИЛИ дефолтные */}
                 <CometOrbitScene orbitParams={orbitParams || defaultOrbitParams} />
               </div>
 
