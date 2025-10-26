@@ -1,10 +1,10 @@
 // --- START OF FILE ObservationForm.jsx ---
 
 import React, { useState, useEffect, useRef } from 'react';
-import { addObservationToComet, createComet, deleteComet, updateComet } from '../api';
+import { addObservationToComet, createComet, deleteComet, updateComet, } from '../api';
 
 // Компонент для управления одной кометой в списке
-function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onToggleExpand }) {
+function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onToggleExpand, }) {
   const [name, setName] = useState(comet.name);
 
   // Обновляем локальное имя, если пропсы изменились
@@ -21,6 +21,7 @@ function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onTogg
       setName(comet.name); // Сброс, если имя пустое или не изменилось
     }
   };
+
 
   return (
     <div className={`comet-item ${isSelected ? 'active' : ''}`}>
@@ -43,7 +44,16 @@ function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onTogg
           ) : (
             comet.observations.map(obs => (
               <div key={obs.id} className="observation-mini">
-                <span>{new Date(obs.observation_time).toLocaleDateString('ru-RU')}</span>
+                <span className="obs-date">{new Date(obs.observation_time).toLocaleDateString('ru-RU')}</span>
+                <span className="obs-ra"> {obs.ra_hms_str}</span>
+                <span className="obs-dec"> {obs.dec_dms_str}</span>
+                <button
+                  className="btn-danger-small"
+                  onClick={() => handleRemoveObservation(obs.id)}
+                  title="Удалить наблюдение"
+                >
+                  <i data-feather="trash-2"></i>
+                </button>
               </div>
             ))
           )}
@@ -141,6 +151,23 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
     }
   };
 
+  const handleRemoveObservation = async (cometId, observationId) => {
+    try {
+      await deleteObservation(observationId);
+      // Обновляем данные кометы после удаления наблюдения
+      const updatedComet = comets.find(c => c.id === cometId);
+      if (updatedComet) {
+        const updatedObservations = updatedComet.observations.filter(obs => obs.id !== observationId);
+        onUpdate('update', {
+          ...updatedComet,
+          observations: updatedObservations
+        });
+      }
+    } catch (err) {
+      setError("Не удалось удалить наблюдение.");
+    }
+  };
+
   const handleUpdateCometName = async (cometId, data) => {
     try {
       const updatedComet = await updateComet(cometId, data);
@@ -222,7 +249,16 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
       <div className="comets-panel">
         <div className="comets-list">
           {comets.map(comet => (
-            <CometItem key={comet.id} comet={{...comet, isExpanded: !!expandedComets[comet.id]}} isSelected={selectedCometId === comet.id} onSelect={setSelectedCometId} onUpdateName={handleUpdateCometName} onRemove={handleRemoveComet} onToggleExpand={toggleCometExpanded} />
+            <CometItem 
+              key={comet.id} 
+              comet={{...comet, isExpanded: !!expandedComets[comet.id]}} 
+              isSelected={selectedCometId === comet.id} 
+              onSelect={setSelectedCometId} 
+              onUpdateName={handleUpdateCometName} 
+              onRemove={handleRemoveComet} 
+              onToggleExpand={toggleCometExpanded}
+              onRemoveObservation={handleRemoveObservation}
+            />
           ))}
         </div>
       </div>
