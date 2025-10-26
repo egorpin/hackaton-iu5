@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
-import ObservationForm from './components/ObservationForm'; // <-- ИЗМЕНЕНО НАЗАД
+import ObservationForm from './components/ObservationForm'; 
 import ResultsDisplay from './components/ResultsDisplay';
 import { getComets } from './api';
 import StarryBackground from './components/StarryBackground';
@@ -108,11 +108,10 @@ function App() {
                 по <span>астрометрическим наблюдениям</span>.
               </p>
               <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2.5rem' }}>
-                {/* Применяем новые общие классы */}
-                <a href="#observations-section" data-aos="fade-up" data-aos-delay="400" className="btn btn-outline">
+                <a href="#observations-section" data-aos="fade-up" data-aos-delay="500" className="btn btn-outline" onClick={scrollToObservations}>
                   Начать наблюдения
                 </a>
-                <a href="#visualization-section" data-aos="fade-up" data-aos-delay="500" className="btn btn-outline">
+                <a href="#visualization-section" data-aos="fade-up" data-aos-delay="500" className="btn btn-outline" onClick={scrollToVisualization}>
                   Посмотреть 3D модель
                 </a>
               </div>
@@ -122,9 +121,7 @@ function App() {
         </div>
       </section>
 
-      {/* --- ВОТ ЭТА СЕКЦИЯ БЫЛА ПОТЕРЯНА. ТЕПЕРЬ ОНА НА МЕСТЕ --- */}
       <section className="status">
-        {/* ... (содержимое секции status без изменений) ... */}
          <div className="container">
           <div className="content">
             <div className="title" data-aos="fade-down" data-aos-delay="400">
@@ -181,7 +178,6 @@ function App() {
                 <CometOrbitScene orbitParams={orbitParamsForScene} />
               </div>
               <div className="orbit-info">
-                {/* --- ВОТ ИЗМЕНЕНИЕ: проверяем selectedComet И selectedComet.elements --- */}
                 {selectedComet && selectedComet.elements ? (
                   <ResultsDisplay
                     orbitParams={selectedComet.elements}

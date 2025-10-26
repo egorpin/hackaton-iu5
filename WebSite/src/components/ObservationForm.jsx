@@ -149,10 +149,12 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
               onChange={(e) => setNewCometName(e.target.value)}
               style={{flexGrow: 1}}
             />
-            <button type="submit" className="btn-add-comet">
-              <i data-feather="plus-circle" className="btn-icon"></i>
-              Добавить комету
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+              <button type="submit" className="btn btn-outline btn-small">
+                <i data-feather="plus-circle" className="btn-icon"></i>
+                Добавить комету
+              </button>
+            </div>
         </form>
       </div>
 
@@ -175,7 +177,7 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
           <div className="form-group"><label>Склонение (Dec) *</label><input type="text" placeholder="[+/-]ДД ММ СС.С" value={currentObs.dec} onChange={(e) => setCurrentObs({...currentObs, dec: e.target.value})} required/><div className="coord-example">Пример: +45 30 15.2</div></div>
         </div>
         {error && <div className="error-message" style={{color: 'red', textAlign: 'center', margin: '1rem 0'}}>{error}</div>}
-        <button type="submit" className="btn-primary" disabled={isLoading || !selectedCometId}>{isLoading ? "Добавление..." : `Добавить наблюдение для ${selectedComet?.name || ''}`}</button>
+        <button type="submit" className="btn btn-outliney" disabled={isLoading || !selectedCometId}>{isLoading ? "Добавление..." : `Добавить наблюдение для ${selectedComet?.name || ''}`}</button>
       </form>
     </div>
   );
