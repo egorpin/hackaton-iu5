@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import CometOrbitScene from './components/CometOrbitScene';
-import ObservationForm from './components/ObservationForm'; 
+import ObservationForm from './components/ObservationForm';
 import ResultsDisplay from './components/ResultsDisplay';
 import { getComets } from './api';
 import StarryBackground from './components/StarryBackground';
@@ -130,10 +130,10 @@ function App() {
             </div>
             <div className="planet">
               <div className="earth"><div className="moon"></div></div>
-              <div className="desc desc-1"><p className="name" data-aos="fade-right" data-aos-delay="200">Точность расчета</p><hr data-aos="fade-right" data-aos-delay="200" /><p className="value" data-aos="fade-right" data-aos-delay="200">До 99.8%</p></div>
-              <div className="desc desc-2"><p className="name" data-aos="fade-right" data-aos-delay="400">Минимальные наблюдения</p><hr data-aos="fade-right" data-aos-delay="400" /><p className="value" data-aos="fade-right" data-aos-delay="400">3 точки данных</p></div>
+              <div className="desc desc-1"><p className="name" data-aos="fade-right" data-aos-delay="200">Точность расчета</p><hr data-aos="fade-right" data-aos-delay="200" /><p className="value" data-aos="fade-right" data-aos-delay="200">Да</p></div>
+              <div className="desc desc-2"><p className="name" data-aos="fade-right" data-aos-delay="400">Минимальные наблюдения</p><hr data-aos="fade-right" data-aos-delay="400" /><p className="value" data-aos="fade-right" data-aos-delay="400">5 точек данных</p></div>
               <div className="desc desc-3"><p className="name" data-aos="fade-right" data-aos-delay="600">Время расчета</p><hr data-aos="fade-right" data-aos-delay="600" /><p className="value" data-aos="fade-right" data-aos-delay="600">Менее 10 секунд</p></div>
-              <div className="desc desc-4"><p className="name" data-aos="fade-left" data-aos-delay="200">Алгоритм</p><hr data-aos="fade-left" data-aos-delay="200" /><p className="value" data-aos="fade-left" data-aos-delay="200">Метод Гаусса</p></div>
+              <div className="desc desc-4"><p className="name" data-aos="fade-left" data-aos-delay="200">Алгоритм</p><hr data-aos="fade-left" data-aos-delay="200" /><p className="value" data-aos="fade-left" data-aos-delay="200">Метод Ламберта</p></div>
               <div className="desc desc-5"><p className="name" data-aos="fade-left" data-aos-delay="400">Координаты</p><hr data-aos="fade-left" data-aos-delay="400" /><p className="value" data-aos="fade-left" data-aos-delay="400">RA/Dec система</p></div>
               <div className="desc desc-6"><p className="name" data-aos="fade-left" data-aos-delay="600">Орбитальные параметры</p><hr data-aos="fade-left" data-aos-delay="600" /><p className="value" data-aos="fade-left" data-aos-delay="600">6 элементов</p></div>
             </div>
