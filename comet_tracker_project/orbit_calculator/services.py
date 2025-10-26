@@ -32,8 +32,8 @@ def calculate_orbital_elements(comet):
     """
     observations = comet.observations.all().order_by('observation_time')
 
-    if len(observations) < 3:
-        raise ValueError("Недостаточно наблюдений для расчета орбиты (требуется минимум 3)")
+    if len(observations) < 5:
+        raise ValueError("Недостаточно наблюдений для расчета орбиты (требуется минимум 5)")
 
     # Берем первое, среднее и последнее наблюдение для лучшей точности
     obs_indices = [0, len(observations)//2, len(observations)-1]

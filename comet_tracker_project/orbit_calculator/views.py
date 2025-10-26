@@ -100,7 +100,7 @@ class AddObservationView(APIView):
         serializer.save(comet=comet)
 
         # Логика пересчета, если наблюдений достаточно
-        if comet.observations.count() >= 3:
+        if comet.observations.count() >= 5:
             try:
                 elements = calculate_orbital_elements(comet)
                 if elements:
@@ -133,10 +133,10 @@ class RecalculateOrbitView(APIView):
         comet = get_object_or_404(Comet, pk=comet_pk)
 
         # 1. Проверка минимального количества наблюдений
-        if comet.observations.count() < 3:
+        if comet.observations.count() < 5:
             detail_serializer = CometDetailSerializer(comet)
             response_data = detail_serializer.data
-            response_data['error'] = "Для пересчета орбиты требуется минимум 3 наблюдения."
+            response_data['error'] = "Для пересчета орбиты требуется минимум 5 наблюдения."
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
         # 2. Запуск расчета
