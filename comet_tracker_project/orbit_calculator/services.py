@@ -259,19 +259,6 @@ def predict_close_approach(orbital_elements):
         traceback.print_exc()
         raise Exception(f"Ошибка прогноза сближения: {str(e)}")
 
-# Альтернативная реализация с использованием всех наблюдений
-def calculate_orbital_elements_advanced(comet):
-    """
-    Усовершенствованная версия с использованием всех наблюдений.
-    """
-    observations = comet.observations.all().order_by('observation_time')
-
-    if len(observations) < 5:
-        raise ValueError("Для точного расчета требуется минимум 5 наблюдений")
-
-    # Пока используем базовую реализацию с первыми тремя наблюдениями
-    return calculate_orbital_elements(comet)
-
 # Упрощенная версия для отладки с тестовыми данными
 def calculate_orbital_elements_simple(comet):
     """
