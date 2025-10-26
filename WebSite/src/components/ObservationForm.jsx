@@ -1,6 +1,6 @@
 // --- START OF FILE ObservationForm.jsx ---
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { addObservationToComet, createComet, deleteComet, updateComet } from '../api';
 
 // Компонент для управления одной кометой в списке
@@ -55,17 +55,63 @@ function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onTogg
 
 // Основной компонент-менеджер
 export default function ObservationForm({ comets, onUpdate, selectedCometId, setSelectedCometId }) {
-  const [currentObs, setCurrentObs] = useState({ date: '', time: '', ra: '', dec: '' });
-  const [newCometName, setNewCometName] = useState(''); // <-- СОСТОЯНИЕ ДЛЯ ИМЕНИ НОВОЙ КОМЕТЫ
+  const [currentObs, setCurrentObs] = useState({ 
+    date: '', 
+    time: '', 
+    ra: '', 
+    dec: '',
+    photo: null,
+    photoPreview: null
+  });
+  const [newCometName, setNewCometName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [expandedComets, setExpandedComets] = useState({});
+  
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (window.feather) window.feather.replace();
-  }, [comets, expandedComets]);
+  }, [comets, expandedComets, currentObs.photoPreview]);
 
   const selectedComet = comets.find(c => c.id === selectedCometId);
+
+  const handlePhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Пожалуйста, выберите файл изображения');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Размер файла не должен превышать 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCurrentObs({
+          ...currentObs,
+          photo: file,
+          photoPreview: e.target.result
+        });
+        setError('');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setCurrentObs({
+      ...currentObs,
+      photo: null,
+      photoPreview: null
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleAddNewComet = async (e) => {
     e.preventDefault();
@@ -114,14 +160,29 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
     const ra_hms_str = currentObs.ra.trim().replace(/\s+/g, ':');
     const dec_dms_str = currentObs.dec.trim().replace(/\s+/g, ':');
 
-    const observationData = { observation_time: `${currentObs.date}T${currentObs.time}`, ra_hms_str, dec_dms_str };
+    const observationData = { 
+      observation_time: `${currentObs.date}T${currentObs.time}`, 
+      ra_hms_str, 
+      dec_dms_str 
+    };
 
     setIsLoading(true);
     setError('');
     try {
       const updatedComet = await addObservationToComet(selectedCometId, observationData);
       onUpdate('update', updatedComet);
-      setCurrentObs({ date: '', time: '', ra: '', dec: '' });
+      // Сбрасываем форму, включая фото
+      setCurrentObs({ 
+        date: '', 
+        time: '', 
+        ra: '', 
+        dec: '',
+        photo: null,
+        photoPreview: null
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       const errorMessages = Object.entries(err).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`).join(' ');
       setError(errorMessages || "Ошибка при добавлении наблюдения.");
@@ -176,8 +237,55 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
           <div className="form-group"><label>Прямое восхождение (RA) *</label><input type="text" placeholder="ЧЧ ММ СС.С" value={currentObs.ra} onChange={(e) => setCurrentObs({...currentObs, ra: e.target.value})} required/><div className="coord-example">Пример: 12 34 56.7</div></div>
           <div className="form-group"><label>Склонение (Dec) *</label><input type="text" placeholder="[+/-]ДД ММ СС.С" value={currentObs.dec} onChange={(e) => setCurrentObs({...currentObs, dec: e.target.value})} required/><div className="coord-example">Пример: +45 30 15.2</div></div>
         </div>
+
+        {/* Секция загрузки фото */}
+        <div className="form-group">
+          <label>Фотография кометы (опционально)</label>
+          <div className="photo-upload-section">
+            {!currentObs.photoPreview ? (
+              <div
+                className="photo-upload-area"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="photo-upload"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  style={{ display: 'none' }}
+                />
+                <div className="photo-upload-content">
+                  <i data-feather="upload" className="photo-upload-icon"></i>
+                  <div className="photo-upload-text">
+                    <div className="photo-upload-title">Нажмите для загрузки фото</div>
+                    <div className="photo-upload-subtitle">Кликните по области</div>
+                  </div>
+                  <p className="photo-upload-hint">JPG, PNG до 5MB</p>
+                </div>
+              </div>
+            ) : (
+              <div className="photo-preview">
+                <div className="photo-preview-image">
+                  <img src={currentObs.photoPreview} alt="Предпросмотр" />
+                  <button
+                    type="button"
+                    className="photo-remove-btn"
+                    onClick={removePhoto}
+                  >
+                    <i data-feather="x"></i>
+                  </button>
+                </div>
+                <p className="photo-name">{currentObs.photo?.name}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {error && <div className="error-message" style={{color: 'red', textAlign: 'center', margin: '1rem 0'}}>{error}</div>}
-        <button type="submit" className="btn btn-outliney" disabled={isLoading || !selectedCometId}>{isLoading ? "Добавление..." : `Добавить наблюдение для ${selectedComet?.name || ''}`}</button>
+        <button type="submit" className="btn btn-outline" disabled={isLoading || !selectedCometId}>
+          {isLoading ? "Добавление..." : `Добавить наблюдение для ${selectedComet?.name || ''}`}
+        </button>
       </form>
     </div>
   );
