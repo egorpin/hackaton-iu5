@@ -45,8 +45,8 @@ function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onTogg
             comet.observations.map(obs => (
               <div key={obs.id} className="observation-mini">
                 <span className="obs-date">{new Date(obs.observation_time).toLocaleDateString('ru-RU')}</span>
-                <span className="obs-ra"> {obs.ra_hms_str}</span>
-                <span className="obs-dec"> {obs.dec_dms_str}</span>
+                <span className="obs-ra"> RA DEG: {obs.ra_deg.toFixed(5) }</span>
+                <span className="obs-dec"> DEC DEG: {obs.dec_deg.toFixed(5) }</span>
                 <button
                   className="btn-danger-small"
                   onClick={() => handleRemoveObservation(obs.id)}
@@ -65,10 +65,10 @@ function CometItem({ comet, isSelected, onSelect, onUpdateName, onRemove, onTogg
 
 // Основной компонент-менеджер
 export default function ObservationForm({ comets, onUpdate, selectedCometId, setSelectedCometId }) {
-  const [currentObs, setCurrentObs] = useState({ 
-    date: '', 
-    time: '', 
-    ra: '', 
+  const [currentObs, setCurrentObs] = useState({
+    date: '',
+    time: '',
+    ra: '',
     dec: '',
     photo: null,
     photoPreview: null
@@ -77,7 +77,7 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [expandedComets, setExpandedComets] = useState({});
-  
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -187,10 +187,10 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
     const ra_hms_str = currentObs.ra.trim().replace(/\s+/g, ':');
     const dec_dms_str = currentObs.dec.trim().replace(/\s+/g, ':');
 
-    const observationData = { 
-      observation_time: `${currentObs.date}T${currentObs.time}`, 
-      ra_hms_str, 
-      dec_dms_str 
+    const observationData = {
+      observation_time: `${currentObs.date}T${currentObs.time}`,
+      ra_hms_str,
+      dec_dms_str
     };
 
     setIsLoading(true);
@@ -199,10 +199,10 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
       const updatedComet = await addObservationToComet(selectedCometId, observationData);
       onUpdate('update', updatedComet);
       // Сбрасываем форму, включая фото
-      setCurrentObs({ 
-        date: '', 
-        time: '', 
-        ra: '', 
+      setCurrentObs({
+        date: '',
+        time: '',
+        ra: '',
         dec: '',
         photo: null,
         photoPreview: null
@@ -249,13 +249,13 @@ export default function ObservationForm({ comets, onUpdate, selectedCometId, set
       <div className="comets-panel">
         <div className="comets-list">
           {comets.map(comet => (
-            <CometItem 
-              key={comet.id} 
-              comet={{...comet, isExpanded: !!expandedComets[comet.id]}} 
-              isSelected={selectedCometId === comet.id} 
-              onSelect={setSelectedCometId} 
-              onUpdateName={handleUpdateCometName} 
-              onRemove={handleRemoveComet} 
+            <CometItem
+              key={comet.id}
+              comet={{...comet, isExpanded: !!expandedComets[comet.id]}}
+              isSelected={selectedCometId === comet.id}
+              onSelect={setSelectedCometId}
+              onUpdateName={handleUpdateCometName}
+              onRemove={handleRemoveComet}
               onToggleExpand={toggleCometExpanded}
               onRemoveObservation={handleRemoveObservation}
             />
