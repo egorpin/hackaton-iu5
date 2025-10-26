@@ -65,13 +65,21 @@ class OrbitCalculationView(APIView):
             )
 
         try:
-            calculate_orbital_elements(comet)
-            predict_close_approach(comet.elements)
+            elements = calculate_orbital_elements(comet)
+            if elements:
+                predict_close_approach(elements)
+
             detail_serializer = CometDetailSerializer(comet)
             return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             comet.delete()
+            # 1. Выводим полную информацию об ошибке в консоль сервера
+            print("="*60)
+            print(f"!!! КРИТИЧЕСКАЯ ОШИБКА РАСЧЕТА ОРБИТЫ ПРИ СОЗДАНИИ !!!")
+            traceback.print_exc()
+            print(f"!!! ТЕКСТ ИСКЛЮЧЕНИЯ: {e} !!!")
+            print("="*60)
             return Response(
                 {"error": f"Ошибка расчета орбиты: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -91,6 +99,7 @@ class AddObservationView(APIView):
 
         serializer.save(comet=comet)
 
+        # Логика пересчета, если наблюдений достаточно
         if comet.observations.count() >= 3:
             try:
                 elements = calculate_orbital_elements(comet)
@@ -98,25 +107,59 @@ class AddObservationView(APIView):
                     predict_close_approach(elements)
 
             except Exception as e:
-                # --- ИЗМЕНЕНИЯ ЗДЕСЬ: ДОБАВЛЕН ПОДРОБНЫЙ ВЫВОД ОШИБКИ В КОНСОЛЬ ---
-                # 1. Выводим полную информацию об ошибке в консоль сервера
+                # --- ЛОГИКА ОБРАБОТКИ ОШИБКИ ---
                 print("="*60)
                 print(f"!!! КРИТИЧЕСКАЯ ОШИБКА РАСЧЕТА ОРБИТЫ ДЛЯ КОМЕТЫ ID={comet.id} !!!")
-                # Эта команда напечатает полный путь ошибки: файл, строку и причину
                 traceback.print_exc()
                 print(f"!!! ТЕКСТ ИСКЛЮЧЕНИЯ: {e} !!!")
                 print("="*60)
 
-                # 2. Логика ответа остается прежней, чтобы фронтенд не падал
                 detail_serializer = CometDetailSerializer(comet)
                 response_data = detail_serializer.data
                 response_data['calculation_warning'] = f"Наблюдение добавлено, но пересчет орбиты не удался. См. консоль сервера для деталей."
                 return Response(response_data, status=status.HTTP_200_OK)
 
-        # Если наблюдений меньше 3 ИЛИ если расчет прошел успешно,
-        # мы попадаем сюда. Возвращаем актуальные данные о комете.
+        # Если расчет прошел успешно или наблюдений недостаточно
         detail_serializer = CometDetailSerializer(comet)
         return Response(detail_serializer.data, status=status.HTTP_200_OK)
 
+
+class RecalculateOrbitView(APIView):
+    """
+    POST /api/comets/<comet_pk>/recalculate/
+    Принудительно запускает пересчет орбиты по текущим наблюдениям.
+    """
+    def post(self, request, comet_pk, *args, **kwargs):
+        comet = get_object_or_404(Comet, pk=comet_pk)
+
+        # 1. Проверка минимального количества наблюдений
+        if comet.observations.count() < 3:
+            detail_serializer = CometDetailSerializer(comet)
+            response_data = detail_serializer.data
+            response_data['error'] = "Для пересчета орбиты требуется минимум 3 наблюдения."
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Запуск расчета
+        try:
+            elements = calculate_orbital_elements(comet)
+            if elements:
+                predict_close_approach(elements)
+
+            # 3. Успешный ответ
+            detail_serializer = CometDetailSerializer(comet)
+            return Response(detail_serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # 4. Обработка ошибки
+            print("="*60)
+            print(f"!!! КРИТИЧЕСКАЯ ОШИБКА ПРИНУДИТЕЛЬНОГО ПЕРЕСЧЕТА ОРБИТЫ ДЛЯ КОМЕТЫ ID={comet.id} !!!")
+            traceback.print_exc()
+            print(f"!!! ТЕКСТ ИСКЛЮЧЕНИЯ: {e} !!!")
+            print("="*60)
+
+            detail_serializer = CometDetailSerializer(comet)
+            response_data = detail_serializer.data
+            response_data['calculation_error'] = f"Принудительный пересчет орбиты не удался. См. консоль сервера для деталей."
+            return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # --- END OF FILE views.py ---

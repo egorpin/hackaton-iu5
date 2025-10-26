@@ -2,13 +2,14 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CometViewSet, OrbitCalculationView, AddObservationView
+from .views import CometViewSet, OrbitCalculationView, AddObservationView, RecalculateOrbitView
 
 # Создание роутера для ViewSet (для стандартных GET)
 router = DefaultRouter()
 router.register(r'comets', CometViewSet)
 
 urlpatterns = [
+    path('comets/<int:comet_pk>/recalculate/', RecalculateOrbitView.as_view(), name='comet-recalculate'),
     path('comets/calculate/', OrbitCalculationView.as_view(), name='calculate_orbit'),
 
     # Стандартные маршруты: GET /comets/, GET /comets/<id>/
