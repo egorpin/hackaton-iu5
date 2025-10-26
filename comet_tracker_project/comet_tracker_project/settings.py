@@ -78,8 +78,12 @@ WSGI_APPLICATION = 'comet_tracker_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'comet_tracker',        # Имя базы данных
+        'USER': 'comet_user',           # Имя пользователя
+        'PASSWORD': '1234',    # Пароль
+        'HOST': '127.0.0.1',            # Хост (или IP адрес)
+        'PORT': '5433',                 # Порт PostgreSQL (по умолчанию 5432)
     }
 }
 
