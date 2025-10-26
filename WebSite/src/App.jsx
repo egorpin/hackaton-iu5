@@ -129,7 +129,7 @@ function App() {
               <p>Используем современные алгоритмы определения орбит на основе методов Гаусса и наименьших квадратов для точного расчета траекторий небесных тел.</p>
             </div>
             <div className="planet">
-              <div className="earth"><div className="moon"><div className="moon-desc"><p>Комета</p><hr/></div></div></div>
+              <div className="earth"><div className="moon"></div></div>
               <div className="desc desc-1"><p className="name" data-aos="fade-right" data-aos-delay="200">Точность расчета</p><hr data-aos="fade-right" data-aos-delay="200" /><p className="value" data-aos="fade-right" data-aos-delay="200">До 99.8%</p></div>
               <div className="desc desc-2"><p className="name" data-aos="fade-right" data-aos-delay="400">Минимальные наблюдения</p><hr data-aos="fade-right" data-aos-delay="400" /><p className="value" data-aos="fade-right" data-aos-delay="400">3 точки данных</p></div>
               <div className="desc desc-3"><p className="name" data-aos="fade-right" data-aos-delay="600">Время расчета</p><hr data-aos="fade-right" data-aos-delay="600" /><p className="value" data-aos="fade-right" data-aos-delay="600">Менее 1 секунды</p></div>
